@@ -1,10 +1,10 @@
 import { RegistrationForm } from "@/components/registration-form";
 
-export default function Home() {
+export default function Retailer() {
   return (
     <>
       <RegistrationForm
-        heading={"Customer Registration Form"}
+        heading={"Retailer Registration Form"}
         className="w-sm mx-auto mt-20"
       />
     </>
