@@ -13,16 +13,7 @@ import { Label } from "@/components/ui/label";
 import { AutoSearch } from "./ui/autoSearch";
 import { maharashtraCities } from "./constants/city";
 
-interface RegistrationFormProps {
-  className?: string;
-  heading?: string;
-}
-
-export function RegistrationForm({
-  className,
-  heading,
-  ...props
-}: RegistrationFormProps) {
+export function RegistrationForm({ className, heading, ...props }) {
   return (
     <div
       className={cn(

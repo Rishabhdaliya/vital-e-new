@@ -19,11 +19,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 
-interface AutoSearchProps {
-  cities: string[];
-}
-
-export function AutoSearch({ cities }: AutoSearchProps) {
+export function AutoSearch({ cities }) {
   const [open, setOpen] = React.useState(false);
   const [value, setValue] = React.useState("");
 
@@ -37,7 +33,7 @@ export function AutoSearch({ cities }: AutoSearchProps) {
           className="w-full justify-between"
         >
           {value
-            ? cities.find((currentCity: string) => currentCity === value)
+            ? cities.find((currentCity) => currentCity === value)
             : "Select City..."}
           <ChevronsUpDown className="opacity-50" />
         </Button>
@@ -48,7 +44,7 @@ export function AutoSearch({ cities }: AutoSearchProps) {
           <CommandList>
             <CommandEmpty>No city found.</CommandEmpty>
             <CommandGroup>
-              {cities.map((currentCity: string) => (
+              {cities.map((currentCity) => (
                 <CommandItem
                   key={currentCity}
                   value={currentCity}
@@ -57,7 +53,7 @@ export function AutoSearch({ cities }: AutoSearchProps) {
                     setOpen(false);
                   }}
                 >
-                  {currentCity}
+                  <span>{currentCity}</span>
                   <Check
                     className={cn(
                       "ml-auto",
