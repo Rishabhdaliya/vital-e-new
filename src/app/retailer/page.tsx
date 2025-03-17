@@ -1,4 +1,4 @@
-import { RegistrationForm } from "../../components/registration-form";
+import { RegistrationForm } from "@/components/registration-form";
 
 export default function Retailer() {
   return (

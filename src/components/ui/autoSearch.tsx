@@ -3,8 +3,8 @@
 import * as React from "react";
 import { Check, ChevronsUpDown } from "lucide-react";
 
-import { cn } from "../../lib/utils";
-import { Button } from "../../components/ui/button";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 import {
   Command,
   CommandEmpty,
@@ -12,14 +12,18 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-} from "../../components/ui/command";
+} from "@/components/ui/command";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "../../components/ui/popover";
+} from "@/components/ui/popover";
 
-export function AutoSearch({ cities }) {
+interface AutoSearchProps {
+  cities: string[];
+}
+
+export function AutoSearch({ cities }: AutoSearchProps) {
   const [open, setOpen] = React.useState(false);
   const [value, setValue] = React.useState("");
 
@@ -33,7 +37,7 @@ export function AutoSearch({ cities }) {
           className="w-full justify-between"
         >
           {value
-            ? cities.find((currentCity) => currentCity === value)
+            ? cities.find((currentCity: string) => currentCity === value)
             : "Select City..."}
           <ChevronsUpDown className="opacity-50" />
         </Button>
@@ -44,11 +48,11 @@ export function AutoSearch({ cities }) {
           <CommandList>
             <CommandEmpty>No city found.</CommandEmpty>
             <CommandGroup>
-              {cities.map((currentCity) => (
+              {cities.map((currentCity: string) => (
                 <CommandItem
                   key={currentCity}
                   value={currentCity}
-                  onSelect={(currentValue) => {
+                  onSelect={(currentValue: string) => {
                     setValue(currentValue === value ? "" : currentValue);
                     setOpen(false);
                   }}

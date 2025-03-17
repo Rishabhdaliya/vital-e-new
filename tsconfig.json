@@ -4,41 +4,24 @@
     "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
     "skipLibCheck": true,
-    "strict": false,
+    "strict": true,
     "noEmit": true,
-    "incremental": true,
-    "module": "esnext",
     "esModuleInterop": true,
-    "moduleResolution": "node",
+    "module": "esnext",
+    "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
     "jsx": "preserve",
+    "incremental": true,
     "plugins": [
       {
         "name": "next"
       }
-    ]
+    ],
+    "paths": {
+      "@/*": ["./src/*"]
+    }
   },
-  "include": [
-    "next-env.d.ts",
-    ".next/types/**/*.ts",
-    "**/*.ts",
-    "**/*.tsx",
-    "src/components/ui/popover.jsx",
-    "src/components/ui/label.jsx",
-    "src/components/ui/input.jsx",
-    "src/components/ui/dialog.jsx",
-    "src/components/ui/command.jsx",
-    "src/components/ui/card.jsx",
-    "src/components/ui/button.jsx",
-    "src/components/ui/autoSearch.jsx",
-    "src/components/constants/city.jsx",
-    "src/components/registration-form.jsx",
-    "src/components/header.jsx",
-    "src/app/dealer/page.jsx",
-    "src/app/retailer/page.jsx",
-    "src/app/layout.jsx",
-    "src/app/page.jsx"
-  ],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
   "exclude": ["node_modules"]
 }
