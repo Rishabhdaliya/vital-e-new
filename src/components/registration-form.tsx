@@ -1,4 +1,5 @@
 "use client";
+
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
@@ -10,17 +11,55 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { AutoSearch } from "./ui/autoSearch";
+import { AutoSearch } from "@/components/ui/autoSearch";
+import { Formik, Form, Field } from "formik";
+import * as Yup from "yup";
 import { maharashtraCities } from "./constants/city";
+import {
+  InputOTP,
+  InputOTPGroup,
+  InputOTPSeparator,
+  InputOTPSlot,
+} from "@/components/ui/input-otp";
+
+function OTPForm() {
+  return (
+    <InputOTP maxLength={6}>
+      <InputOTPGroup>
+        <InputOTPSlot index={0} />
+        <InputOTPSlot index={1} />
+        <InputOTPSlot index={2} />
+      </InputOTPGroup>
+      <InputOTPSeparator />
+      <InputOTPGroup>
+        <InputOTPSlot index={3} />
+        <InputOTPSlot index={4} />
+        <InputOTPSlot index={5} />
+      </InputOTPGroup>
+    </InputOTP>
+  );
+}
 
 interface RegistrationFormProps {
   className?: string;
   heading?: string;
+  role: string;
+  handleRegistrationForm: (newUserDetails: any) => void;
 }
+
+const validationSchema = Yup.object({
+  name: Yup.string().required("Name is required"),
+  phoneNo: Yup.string()
+    .matches(/^[0-9]{10}$/, "Phone number must be exactly 10 digits")
+    .required("Phone number is required"),
+  city: Yup.string().required("City is required"),
+});
 
 export function RegistrationForm({
   className,
   heading,
+  handleRegistrationForm,
+  role,
   ...props
 }: RegistrationFormProps) {
   return (
@@ -41,43 +80,64 @@ export function RegistrationForm({
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form>
-            <div className="flex flex-col gap-6">
-              <div className="grid gap-3">
-                <Label htmlFor="username">Name</Label>
-                <Input
-                  id="name"
-                  type="text"
-                  placeholder="Enter your name"
-                  required
-                />
-              </div>
-              <div className="grid gap-3">
-                <Label htmlFor="phone">Whatsapp number</Label>
-                <Input
-                  id="phone"
-                  type="tel"
-                  placeholder="1234567890"
-                  pattern="[0-9]{10}"
-                  maxLength={10}
-                  required
-                />
-              </div>
-              <div className="grid gap-3">
-                <Label htmlFor="phone">City</Label>
-                <AutoSearch cities={maharashtraCities} />
-              </div>
-
-              <div className="flex flex-col gap-3">
-                <Button
-                  type="submit"
-                  className="w-full bg-[#cb202d] text-white"
-                >
-                  Registration
-                </Button>
-              </div>
-            </div>
-          </form>
+          <Formik
+            initialValues={{ name: "", phoneNo: "", city: "" }}
+            validationSchema={validationSchema}
+            onSubmit={(values) => handleRegistrationForm({ ...values, role })}
+          >
+            {({ errors, touched, setFieldValue }) => (
+              <Form className="flex flex-col gap-6">
+                <div className="grid gap-3">
+                  <Label htmlFor="name">Name</Label>
+                  <Field
+                    as={Input}
+                    id="name"
+                    name="name"
+                    type="text"
+                    placeholder="Enter your name"
+                  />
+                  {errors.name && touched.name && (
+                    <p className="text-red-500 text-sm">{errors.name}</p>
+                  )}
+                </div>
+                <div className="grid gap-3">
+                  <Label htmlFor="phoneNo">WhatsApp Number</Label>
+                  <Field
+                    as={Input}
+                    id="phoneNo"
+                    name="phoneNo"
+                    type="tel"
+                    placeholder="1234567890"
+                  />
+                  {errors.phoneNo && touched.phoneNo && (
+                    <p className="text-red-500 text-sm">{errors.phoneNo}</p>
+                  )}
+                </div>
+                <div className="grid gap-3">
+                  <Label htmlFor="city">City</Label>
+                  <AutoSearch
+                    cities={maharashtraCities}
+                    onSelect={(value) => setFieldValue("city", value)}
+                  />
+                  {errors.city && touched.city && (
+                    <p className="text-red-500 text-sm">{errors.city}</p>
+                  )}
+                </div>
+                <div className="grid gap-3 mx-auto">
+                  <Label htmlFor="otp">OTP</Label>
+                  <OTPForm />
+                </div>
+                <div className="flex flex-col gap-3">
+                  <Button
+                    type="submit"
+                    className="w-full bg-[#cb202d] text-white"
+                  >
+                    Register
+                  </Button>
+                </div>
+              </Form>
+            )}
+          </Formik>
         </CardContent>
       </Card>
     </div>

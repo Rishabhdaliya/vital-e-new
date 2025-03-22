@@ -21,9 +21,10 @@ import {
 
 interface AutoSearchProps {
   cities: string[];
+  onSelect: (city: string) => void;
 }
 
-export function AutoSearch({ cities }: AutoSearchProps) {
+export function AutoSearch({ cities, onSelect }: AutoSearchProps) {
   const [open, setOpen] = React.useState(false);
   const [value, setValue] = React.useState("");
 
@@ -36,9 +37,7 @@ export function AutoSearch({ cities }: AutoSearchProps) {
           aria-expanded={open}
           className="w-full justify-between"
         >
-          {value
-            ? cities.find((currentCity: string) => currentCity === value)
-            : "Select City..."}
+          {value || "Select City..."}
           <ChevronsUpDown className="opacity-50" />
         </Button>
       </PopoverTrigger>
@@ -48,12 +47,13 @@ export function AutoSearch({ cities }: AutoSearchProps) {
           <CommandList>
             <CommandEmpty>No city found.</CommandEmpty>
             <CommandGroup>
-              {cities.map((currentCity: string) => (
+              {cities.map((currentCity) => (
                 <CommandItem
                   key={currentCity}
                   value={currentCity}
-                  onSelect={(currentValue: string) => {
-                    setValue(currentValue === value ? "" : currentValue);
+                  onSelect={() => {
+                    setValue(currentCity);
+                    onSelect(currentCity);
                     setOpen(false);
                   }}
                 >

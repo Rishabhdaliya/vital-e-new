@@ -22,6 +22,14 @@
       "@/*": ["./src/*"]
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts",
+    "src/lib/firebase/auth.js",
+    "src/lib/firebase/serverApp.js",
+    "src/lib/config.js"
+  ],
   "exclude": ["node_modules"]
 }
