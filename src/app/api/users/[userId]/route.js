@@ -1,5 +1,5 @@
+import { db } from "@/lib/firebase/config";
 import { collection, doc, updateDoc, getDoc } from "firebase/firestore";
-import { db } from "@/firebase/config";
 import { NextResponse } from "next/server";
 
 export async function PUT(req, { params }) {
