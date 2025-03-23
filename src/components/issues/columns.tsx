@@ -20,6 +20,7 @@ import {
   setHiglighter,
 } from "@/redux/features/issues/issueSlice";
 import { MultiSelect } from "../ui/multiSelector";
+import { User } from "../types/schema";
 export const columns: ColumnDef<Task>[] = [
   {
     id: "select",
@@ -52,7 +53,7 @@ export const columns: ColumnDef<Task>[] = [
     cell: ({ row }) => {
       const dispatch = useDispatch();
       const selectedIssues = useSelector(
-        (state: { issues: { selectedIssues: Task[] } }) =>
+        (state: { issues: { selectedIssues: User[] } }) =>
           state.issues.selectedIssues
       );
 
@@ -64,7 +65,7 @@ export const columns: ColumnDef<Task>[] = [
       return (
         <Checkbox
           checked={selectedIssues.some(
-            (selectedIssue) => selectedIssue.ticket === row.original.ticket
+            (selectedIssue) => selectedIssue.id === row.original.id
           )}
           onCheckedChange={(checked) =>
             handleRowSelect(row.original, !!checked)

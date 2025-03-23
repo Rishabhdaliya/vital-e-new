@@ -1,20 +1,11 @@
 import { z } from "zod";
 
 export const taskSchema = z.object({
-  ticket: z.string(),
-  summary: z.string(),
-  components: z.array(z.string()).optional(), // Optional, can be an empty array
-  fixVersion: z.string().optional(),
-  status: z.string(),
-  priority: z.string(),
-  assignee: z.string(),
-  reporter: z.string(),
-  defectAging: z.number(),
-  updateAging: z.number(),
-  defectStatus: z.string().optional(),
-  developmentManager: z.string().optional(),
-  label: z.string().optional(),
-  isNewIssue: z.boolean(),
+  id: z.string(),
+  name: z.string(),
+  phoneNo: z.number(),
+  city: z.string(),
+  role: z.enum(["ADMIN", "RETAILER", "CUSTOMER", "DEALER"]),
 });
 export const defectStatusSchema = z.object({
   id: z.string(),

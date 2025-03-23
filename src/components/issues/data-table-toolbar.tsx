@@ -12,7 +12,6 @@ import { DataTableFacetedFilter } from "./data-table-faceted-filter";
 import { useSelector } from "react-redux";
 import { Users } from "./data/schema";
 import { transformUsersToOptions } from "@/lib/utils";
-import { DataTableUserAvailable } from "./data-table-users-available";
 import { User } from "../types/schema";
 
 interface DataTableToolbarProps<TData> {
@@ -59,7 +58,6 @@ export function DataTableToolbar<TData>({
           </Button>
         )}
       </div>
-      <DataTableUserAvailable users={users} />
       <DataTableViewOptions table={table} />
     </div>
   );

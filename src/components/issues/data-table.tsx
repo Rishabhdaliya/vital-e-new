@@ -30,13 +30,13 @@ import { DataTableToolbar } from "./data-table-toolbar";
 import { useSelector } from "react-redux";
 import { Skeleton } from "../ui/skeleton";
 
-interface DataTableProps<TData extends { isNewIssue?: boolean }, TValue> {
+interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
   isLoading: boolean;
 }
 
-export function DataTable<TData extends { isNewIssue?: boolean }, TValue>({
+export function DataTable<TData, TValue>({
   columns,
   data,
   isLoading,
@@ -114,10 +114,6 @@ export function DataTable<TData extends { isNewIssue?: boolean }, TValue>({
               table.getRowModel().rows.map((row) => (
                 <TableRow
                   key={row.id}
-                  className={`
-                  ${
-                    row.original.isNewIssue ? "border-4 border-indigo-600" : ""
-                  }`}
                   data-state={row.getIsSelected() && "selected"}
                 >
                   {row.getVisibleCells().map((cell) => (

@@ -73,17 +73,19 @@ export default function Admin() {
               Welcome to Vital-E dashboard!
             </h2>
             <p className="text-muted-foreground text-sm">
-              Here&apos;s a list of your tasks for today under the release
-              label:
+              Here&apos;s a list of all registered Dealer, Retailers and
+              Customers:
             </p>
           </div>
           <div className="flex items-center space-x-2">
             <Button
-              className={isAnimating ? "bg-green-400" : ""}
+              className={
+                isAnimating ? "bg-green-400 " : "bg-[#cb202d] cursor-pointer"
+              }
               onClick={() => handleRefetchData("issues")}
             >
               <SyncIcon isAnimating={isAnimating} />
-              Issues
+              Fetch users
             </Button>
           </div>
         </div>

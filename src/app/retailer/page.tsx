@@ -3,6 +3,7 @@
 import { RegistrationForm } from "@/components/registration-form";
 import { useToast } from "@/hooks/use-toast";
 import { useAddUserMutation } from "@/redux/features/users/usersApi";
+import { v4 as uuidv4 } from "uuid";
 
 export default function Retailer() {
   const { toast } = useToast();

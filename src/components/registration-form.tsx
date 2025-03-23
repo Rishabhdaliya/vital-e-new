@@ -60,7 +60,10 @@ export function RegistrationForm({
           <Formik
             initialValues={{ name: "", phoneNo: "", city: "" }}
             validationSchema={validationSchema}
-            onSubmit={(values) => handleRegistrationForm({ ...values, role })}
+            onSubmit={(values) => {
+              console.log("here");
+              handleRegistrationForm({ ...values, role });
+            }}
           >
             {({ errors, touched, setFieldValue }) => (
               <Form className="flex flex-col gap-6">

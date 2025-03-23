@@ -3,16 +3,16 @@
 import { RegistrationForm } from "@/components/registration-form";
 import { useToast } from "@/hooks/use-toast";
 import { useAddUserMutation } from "@/redux/features/users/usersApi";
+import { v4 as uuidv4 } from "uuid";
 
 export default function Dealer() {
+  const { toast } = useToast();
   const [addUser, { isLoading, isSuccess, isError, error }] =
     useAddUserMutation();
 
   const handleRegistrationForm = async (newUserDetails: any) => {
-    const { toast } = useToast();
     try {
-      await addUser(newUserDetails).unwrap(); // Use unwrap to get the response data
-      // Handle success (e.g., redirect, show a message)
+      await addUser(newUserDetails).unwrap(); // Use unwrap to get the response data      // Handle success (e.g., redirect, show a message)
       toast({
         variant: "success",
         title: "Success",

@@ -34,7 +34,10 @@ export async function POST(request) {
     const docRef = await addDoc(collection(db, "users"), newUser);
 
     return NextResponse.json(
-      { message: "User added successfully", id: docRef.id },
+      {
+        message: "User added successfully",
+        data: { id: docRef.id, ...newUser },
+      },
       { status: 201 }
     );
   } catch (error) {
