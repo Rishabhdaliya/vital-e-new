@@ -15,30 +15,7 @@ import { AutoSearch } from "@/components/ui/autoSearch";
 import { Formik, Form, Field } from "formik";
 import * as Yup from "yup";
 import { maharashtraCities } from "./constants/city";
-import {
-  InputOTP,
-  InputOTPGroup,
-  InputOTPSeparator,
-  InputOTPSlot,
-} from "@/components/ui/input-otp";
-
-function OTPForm() {
-  return (
-    <InputOTP maxLength={6}>
-      <InputOTPGroup>
-        <InputOTPSlot index={0} />
-        <InputOTPSlot index={1} />
-        <InputOTPSlot index={2} />
-      </InputOTPGroup>
-      <InputOTPSeparator />
-      <InputOTPGroup>
-        <InputOTPSlot index={3} />
-        <InputOTPSlot index={4} />
-        <InputOTPSlot index={5} />
-      </InputOTPGroup>
-    </InputOTP>
-  );
-}
+import { OTPForm } from "./otpForm";
 
 interface RegistrationFormProps {
   className?: string;
@@ -123,10 +100,10 @@ export function RegistrationForm({
                     <p className="text-red-500 text-sm">{errors.city}</p>
                   )}
                 </div>
-                <div className="grid gap-3 mx-auto">
+                {/* <div className="grid gap-3 mx-auto">
                   <Label htmlFor="otp">OTP</Label>
-                  <OTPForm />
-                </div>
+                  <OTPForm phoneNumber={"7066612777"} />
+                </div> */}
                 <div className="flex flex-col gap-3">
                   <Button
                     type="submit"

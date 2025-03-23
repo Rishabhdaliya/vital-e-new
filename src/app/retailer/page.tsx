@@ -1,7 +1,6 @@
 "use client";
 
 import { RegistrationForm } from "@/components/registration-form";
-import { createUserWithEmailAndPassword } from "firebase/auth";
 import { useAddUserMutation } from "@/redux/features/users/usersApi";
 
 export default function Retailer() {
