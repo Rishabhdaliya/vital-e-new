@@ -28,8 +28,17 @@ export async function GET() {
 // Function to add a new user to Firestore
 export async function POST(request) {
   try {
-    const { name, phoneNo, city, role } = await request.json();
-    const newUser = { name, phoneNo, city, role, createdAt: new Date() };
+    const { name, phoneNo, city, role, isVerified, vouchers } =
+      await request.json();
+    const newUser = {
+      name,
+      phoneNo,
+      city,
+      role,
+      isVerified,
+      vouchers,
+      createdAt: new Date(),
+    };
 
     const docRef = await addDoc(collection(db, "users"), newUser);
 

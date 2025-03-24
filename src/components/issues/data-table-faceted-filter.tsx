@@ -1,10 +1,10 @@
-import * as React from 'react';
-import { CheckIcon, PlusCircledIcon } from '@radix-ui/react-icons';
-import { Column } from '@tanstack/react-table';
+import * as React from "react";
+import { CheckIcon, PlusCircledIcon } from "@radix-ui/react-icons";
+import { Column } from "@tanstack/react-table";
 
-import { cn } from '@/lib/utils';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import { cn } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Command,
   CommandEmpty,
@@ -13,13 +13,13 @@ import {
   CommandItem,
   CommandList,
   CommandSeparator,
-} from '@/components/ui/command';
+} from "@/components/ui/command";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from '@/components/ui/popover';
-import { Separator } from '@/components/ui/separator';
+} from "@/components/ui/popover";
+import { Separator } from "@/components/ui/separator";
 
 interface DataTableFacetedFilterProps<TData, TValue> {
   column?: Column<TData, TValue>;
@@ -39,13 +39,36 @@ export function DataTableFacetedFilter<TData, TValue>({
   const facets = column?.getFacetedUniqueValues();
   const selectedValues = new Set(column?.getFilterValue() as string[]);
 
+  const handleSelect = (value: string) => {
+    const newSelectedValues = new Set(selectedValues);
+
+    if (newSelectedValues.has(value)) {
+      newSelectedValues.delete(value);
+    } else {
+      newSelectedValues.add(value);
+    }
+
+    column?.setFilterValue(
+      newSelectedValues.size ? Array.from(newSelectedValues) : undefined
+    );
+  };
+
+  const handleSelectAll = () => {
+    if (selectedValues.size === options.length) {
+      // If all are selected, clear all
+      column?.setFilterValue(undefined);
+    } else {
+      column?.setFilterValue(options.map((option) => option.value));
+    }
+  };
+
   return (
     <Popover>
       <PopoverTrigger asChild>
         <Button variant="outline" size="sm" className="h-8 border-dashed">
           <PlusCircledIcon className="mr-2 h-4 w-4" />
           {title}
-          {selectedValues?.size > 0 && (
+          {selectedValues.size > 0 && (
             <>
               <Separator orientation="vertical" className="mx-2 h-4" />
               <Badge
@@ -86,45 +109,40 @@ export function DataTableFacetedFilter<TData, TValue>({
           <CommandList>
             <CommandEmpty>No results found.</CommandEmpty>
             <CommandGroup>
-              {options.map((option) => {
-                const isSelected = selectedValues.has(option.value);
-                return (
-                  <CommandItem
-                    key={option.value}
-                    onSelect={() => {
-                      if (isSelected) {
-                        selectedValues.delete(option.value);
-                      } else {
-                        selectedValues.add(option.value);
-                      }
-                      const filterValues = Array.from(selectedValues);
-                      column?.setFilterValue(
-                        filterValues.length ? filterValues : undefined
-                      );
-                    }}
+              <CommandItem onSelect={handleSelectAll}>
+                <div className="mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary">
+                  {selectedValues.size === options.length && (
+                    <CheckIcon className="h-4 w-4" />
+                  )}
+                </div>
+                Select All
+              </CommandItem>
+              {options.map((option) => (
+                <CommandItem
+                  key={option.value}
+                  onSelect={() => handleSelect(option.value)}
+                >
+                  <div
+                    className={cn(
+                      "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary",
+                      selectedValues.has(option.value)
+                        ? "bg-primary text-primary-foreground"
+                        : "opacity-50 [&_svg]:invisible"
+                    )}
                   >
-                    <div
-                      className={cn(
-                        'mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary',
-                        isSelected
-                          ? 'bg-primary text-primary-foreground'
-                          : 'opacity-50 [&_svg]:invisible'
-                      )}
-                    >
-                      <CheckIcon className={cn('h-4 w-4')} />
-                    </div>
-                    {option.icon && (
-                      <option.icon className="mr-2 h-4 w-4 text-muted-foreground" />
-                    )}
-                    <span>{option.label}</span>
-                    {facets?.get(option.value) && (
-                      <span className="ml-auto flex h-4 w-4 items-center justify-center font-mono text-xs">
-                        {facets.get(option.value)}
-                      </span>
-                    )}
-                  </CommandItem>
-                );
-              })}
+                    <CheckIcon className="h-4 w-4" />
+                  </div>
+                  {option.icon && (
+                    <option.icon className="mr-2 h-4 w-4 text-muted-foreground" />
+                  )}
+                  <span>{option.label}</span>
+                  {facets?.get(option.value) && (
+                    <span className="ml-auto flex h-4 w-4 items-center justify-center font-mono text-xs">
+                      {facets.get(option.value)}
+                    </span>
+                  )}
+                </CommandItem>
+              ))}
             </CommandGroup>
             {selectedValues.size > 0 && (
               <>

@@ -70,11 +70,11 @@ export function DataTable<TData, TValue>({
     getFacetedRowModel: getFacetedRowModel(),
     getFacetedUniqueValues: getFacetedUniqueValues(),
   });
-  const showHighlighter = useSelector(
-    (state: { issues: { showHighligher: string } }) =>
-      state.issues.showHighligher
-  );
 
+  console.log(
+    "table",
+    table.getRowModel().rows.map((row) => row)
+  );
   return (
     <div className="space-y-4">
       <DataTableToolbar table={table} />

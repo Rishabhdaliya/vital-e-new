@@ -58,11 +58,20 @@ export function RegistrationForm({
         </CardHeader>
         <CardContent>
           <Formik
-            initialValues={{ name: "", phoneNo: "", city: "" }}
+            initialValues={{
+              name: "",
+              phoneNo: "",
+              city: "",
+              role: role,
+              vouchers: [],
+            }}
             validationSchema={validationSchema}
             onSubmit={(values) => {
-              console.log("here");
-              handleRegistrationForm({ ...values, role });
+              console.log("here", values);
+              handleRegistrationForm({
+                ...values,
+                isVerified: false,
+              });
             }}
           >
             {({ errors, touched, setFieldValue }) => (

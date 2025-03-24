@@ -1,10 +1,9 @@
-'use client';
+"use client";
 
-import * as React from 'react';
-import { Check, ChevronsUpDown } from 'lucide-react';
-// import { defectStatusSchema } from '@/app/tasks/data/schema';
-import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
+import * as React from "react";
+import { Check, ChevronsUpDown } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 import {
   Command,
   CommandEmpty,
@@ -12,12 +11,12 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-} from '@/components/ui/command';
+} from "@/components/ui/command";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from '@/components/ui/popover';
+} from "@/components/ui/popover";
 
 interface Option {
   value: string;
@@ -38,7 +37,7 @@ export function AutoComplete({
   placeholder,
 }: AutoCompleteProps) {
   const [open, setOpen] = React.useState(false);
-  const [value, setValue] = React.useState('');
+  const [value, setValue] = React.useState("");
 
   React.useEffect(() => {
     setValue(selectedValue);
@@ -75,8 +74,8 @@ export function AutoComplete({
                 >
                   <Check
                     className={cn(
-                      'mr-2 h-4 w-4 text-sm font-normal',
-                      value === option.value ? 'opacity-100' : 'opacity-0'
+                      "mr-2 h-4 w-4 text-sm font-normal",
+                      value === option.value ? "opacity-100" : "opacity-0"
                     )}
                   />
                   {option.label}
