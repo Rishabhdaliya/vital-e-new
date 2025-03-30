@@ -21,12 +21,10 @@ export default function Navbar() {
     setIsMenuOpen(!isMenuOpen);
   };
 
-  console.log("Current Pathname:", pathname === navLinks[0].href); // Debugging line
-
   return (
     <header className="w-full fixed top-0 left-0 right-0 z-50 transition-all duration-300 bg-white shadow-md">
-      <nav className="border-gray-500 px-4 lg:px-6 py-2.5">
-        <div className="flex flex-wrap justify-between items-center mx-auto max-w-screen-xl">
+      <nav className="border-gray-500 px-4 lg:px-4 py-2.5">
+        <div className="flex flex-wrap justify-between items-center mx-auto max-w-screen5xl">
           <Link href="/" className="flex items-center">
             <span className="self-center text-xl font-semibold whitespace-nowrap">
               Vital-E

@@ -93,7 +93,7 @@ export default function UserProfilePage({
   }
 
   return (
-    <div className="mt-20 px-8 py-4 mx-auto">
+    <div className="mt-20 md:px-8 py-4 mx-auto">
       <Suspense fallback={<TableSkeleton />}>
         <div className="mb-4 flex items-center justify-end space-x-2">
           <DrawerDialogDemo />
