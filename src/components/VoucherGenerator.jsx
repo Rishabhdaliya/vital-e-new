@@ -95,7 +95,7 @@ export default function VoucherGenerator() {
   };
 
   return (
-    <div className="container mx-auto mt-20 py-10">
+    <div className="container mx-auto ">
       <Card className="max-w-2xl mx-auto">
         <CardHeader>
           <CardTitle>Voucher Generator</CardTitle>
@@ -114,47 +114,20 @@ export default function VoucherGenerator() {
           )}
         </CardHeader>
         <CardContent className="space-y-4">
-          <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="single">Single Generation</TabsTrigger>
-              <TabsTrigger value="bulk">Bulk Generation</TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="single" className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="count">Number of Vouchers</Label>
-                <Input
-                  id="count"
-                  type="number"
-                  min="1"
-                  max="1000"
-                  value={count}
-                  onChange={(e) =>
-                    setCount(Number.parseInt(e.target.value) || 0)
-                  }
-                />
-              </div>
-            </TabsContent>
-
-            <TabsContent value="bulk" className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="bulk-count">Bulk Count</Label>
-                <Input
-                  id="bulk-count"
-                  type="number"
-                  min="1"
-                  max="1000"
-                  value={count}
-                  onChange={(e) =>
-                    setCount(Number.parseInt(e.target.value) || 0)
-                  }
-                />
-                <p className="text-sm text-muted-foreground">
-                  Generate up to 1000 vouchers at once
-                </p>
-              </div>
-            </TabsContent>
-          </Tabs>
+          <div className="space-y-2">
+            <Label htmlFor="bulk-count">Bulk Count</Label>
+            <Input
+              id="bulk-count"
+              type="number"
+              min="1"
+              max="1000"
+              value={count}
+              onChange={(e) => setCount(Number.parseInt(e.target.value) || 0)}
+            />
+            <p className="text-sm text-muted-foreground">
+              Generate up to 1000 vouchers at once
+            </p>
+          </div>
 
           {error && (
             <div className="bg-red-50 text-red-500 p-3 rounded-md">{error}</div>
