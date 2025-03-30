@@ -19,6 +19,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { Card } from "@/components/ui/card";
 
 function DrawerDialogDemo() {
   const [open, setOpen] = React.useState(false);
@@ -30,9 +31,12 @@ function DrawerDialogDemo() {
       <DialogTrigger asChild>
         <Button variant="outline">Bulk Upload Voucher</Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
-        <VoucherGenerator />
-      </DialogContent>
+      <Card>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogTitle>Bulk Upload Voucher</DialogTitle>
+          <VoucherGenerator />
+        </DialogContent>
+      </Card>
     </Dialog>
   );
 }
@@ -56,10 +60,10 @@ export default function UserProfilePage({ params }: { params: any }) {
 
   return (
     <div className="mt-20 md:px-8 py-4 mx-auto">
+      <div className="mb-4 flex items-center justify-end space-x-2">
+        <DrawerDialogDemo />
+      </div>
       <Suspense fallback={<TableSkeleton />}>
-        <div className="mb-4 flex items-center justify-end space-x-2">
-          <DrawerDialogDemo />
-        </div>
         <VoucherTable vouchers={vouchers?.data} />
       </Suspense>
     </div>
