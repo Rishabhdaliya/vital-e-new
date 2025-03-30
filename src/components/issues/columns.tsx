@@ -15,10 +15,10 @@ import {
   setSelectedIssues,
   setAllIssues,
   clearAllIssues,
-  setHiglighter,
 } from "@/redux/features/issues/issueSlice";
 import { MultiSelect } from "../ui/multiSelector";
 import { User } from "../types/schema";
+import Link from "next/link";
 export const columns: ColumnDef<Users>[] = [
   {
     id: "select",
@@ -83,9 +83,11 @@ export const columns: ColumnDef<Users>[] = [
       <DataTableColumnHeader column={column} title="Name" />
     ),
     cell: ({ row }) => (
-      <span className="text-xs font-normal   max-w-[250px] line-clamp-custom">
-        {row.getValue("name")}
-      </span>
+      <Link href={`/user/${row.getValue("id")}`}>
+        <span className="text-md text-blue-500 underline font-normal  max-w-[250px] line-clamp-custom">
+          {row.getValue("name")}
+        </span>
+      </Link>
     ),
   },
   {
@@ -94,7 +96,7 @@ export const columns: ColumnDef<Users>[] = [
       <DataTableColumnHeader column={column} title="Phone" />
     ),
     cell: ({ row }) => (
-      <span className="text-xs font-normal   max-w-[250px] line-clamp-custom">
+      <span className="text-md font-normal   max-w-[250px] line-clamp-custom">
         {row.getValue("phoneNo")}
       </span>
     ),
@@ -107,7 +109,7 @@ export const columns: ColumnDef<Users>[] = [
       <DataTableColumnHeader column={column} title="City" />
     ),
     cell: ({ row }) => (
-      <span className="text-xs font-normal max-w-[500px] truncate ">
+      <span className="text-md font-normal max-w-[500px] truncate ">
         {row.getValue("city")}
       </span>
     ),
@@ -118,7 +120,7 @@ export const columns: ColumnDef<Users>[] = [
       <DataTableColumnHeader column={column} title="Role" />
     ),
     cell: ({ row }) => (
-      <span className="text-xs font-normal max-w-[500px] truncate ">
+      <span className="text-md font-normal max-w-[500px] truncate ">
         {row.getValue("role")}
       </span>
     ),
@@ -133,37 +135,18 @@ export const columns: ColumnDef<Users>[] = [
       />
     ),
     cell: ({ row }) => (
-      <span className="text-xs font-normal max-w-[500px] text-center ">
+      <span className="text-md font-normal max-w-[500px] text-center ">
         {row.getValue("isVerified") ? (
-          <span className="bg-transparent text-green-500">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 20 20"
-              fill="currentcolor"
-              className="w-5 h-5 "
-            >
-              <path
-                fillRule="evenodd"
-                d="M16.403 12.652a3 3 0 0 0 0-5.304 3 3 0 0 0-3.75-3.751 3 3 0 0 0-5.305 0 3 3 0 0 0-3.751 3.75 3 3 0 0 0 0 5.305 3 3 0 0 0 3.75 3.751 3 3 0 0 0 5.305 0 3 3 0 0 0 3.751-3.75Zm-2.546-4.46a.75.75 0 0 0-1.214-.883l-3.483 4.79-1.88-1.88a.75.75 0 1 0-1.06 1.061l2.5 2.5a.75.75 0 0 0 1.137-.089l4-5.5Z"
-                clipRule="evenodd"
-              />
-            </svg>
-          </span>
+          <Badge
+            variant="outline"
+            className="mt-1 border-green-500 text-green-500"
+          >
+            Verified
+          </Badge>
         ) : (
-          <span className="bg-transparent text-red-500">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-              className="w-5 h-5"
-            >
-              <path
-                fillRule="evenodd"
-                d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16ZM8.28 7.22a.75.75 0 0 0-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 1 0 1.06 1.06L10 11.06l1.72 1.72a.75.75 0 1 0 1.06-1.06L11.06 10l1.72-1.72a.75.75 0 0 0-1.06-1.06L10 8.94 8.28 7.22Z"
-                clipRule="evenodd"
-              />
-            </svg>
-          </span>
+          <Badge variant="outline" className="mt-1 border-red-500 text-red-500">
+            unVerified
+          </Badge>
         )}
       </span>
     ),
@@ -174,11 +157,26 @@ export const columns: ColumnDef<Users>[] = [
       <DataTableColumnHeader column={column} title="Vouchers" />
     ),
     cell: ({ row }) => (
-      <span className="text-xs font-normal max-w-[500px] truncate ">
+      <span className="text-md font-normal max-w-[500px] truncate ">
         {Array.isArray(row.getValue("vouchers")) &&
           Array.isArray(row.getValue("vouchers")) &&
           "Vouchers"}
       </span>
+    ),
+    enableSorting: false,
+    enableHiding: false,
+  },
+  {
+    accessorKey: "id",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="View" />
+    ),
+    cell: ({ row }) => (
+      <Link href={`/user/${row.getValue("id")}`}>
+        <span className="text-md text-indigo-500 underline cursor-pointer font-normal max-w-[500px] truncate ">
+          View/Update
+        </span>
+      </Link>
     ),
     enableSorting: false,
     enableHiding: false,

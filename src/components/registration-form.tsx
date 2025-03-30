@@ -41,15 +41,12 @@ export function RegistrationForm({
 }: RegistrationFormProps) {
   return (
     <div
-      className={cn(
-        "flex flex-col border-[0.1px] rounded-[15px] border-[#ff3445] gap-6",
-        className
-      )}
+      className={cn("flex flex-col rounded-[15px] gap-6", className)}
       {...props}
     >
       <Card>
         <CardHeader>
-          <CardTitle className="text-xl text-[#cb202d] text-center">
+          <CardTitle className="text-xl text-black text-center">
             {heading}
           </CardTitle>
           <CardDescription className="text-center">
@@ -117,10 +114,7 @@ export function RegistrationForm({
                   <OTPForm phoneNumber={"7066612777"} />
                 </div> */}
                 <div className="flex flex-col gap-3">
-                  <Button
-                    type="submit"
-                    className="w-full bg-[#cb202d] text-white"
-                  >
+                  <Button type="submit" className="w-full bg-black text-white">
                     Register
                   </Button>
                 </div>

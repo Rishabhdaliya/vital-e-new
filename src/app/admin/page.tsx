@@ -5,17 +5,11 @@ import { useGetUsersQuery } from "@/redux/features/users/usersApi";
 import { columns } from "@/components/issues/columns";
 import { DataTable } from "@/components/issues/data-table";
 
-import { useGetAllIssuesQuery } from "@/redux/features/issues/issueApi";
-import { useGetDefectStatusQuery } from "@/redux/features/defectStatus/defectStatusApi";
-import { useGetConfigurationQuery } from "@/redux/features/configuration/configurationApi";
-import { setAutoSync } from "@/redux/features/configuration/configurationSlice";
 import { Button } from "@/components/ui/button";
-import { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useState } from "react";
 import { resetPersistedState } from "@/redux/resetPersistedState";
 import { useToast } from "@/hooks/use-toast";
 import SyncIcon from "@/lib/icons/syncIcon";
-import { ResetIcon } from "@radix-ui/react-icons";
 import { User } from "@/components/types/schema";
 
 export default function Admin() {
@@ -26,7 +20,6 @@ export default function Admin() {
     isLoading,
     refetch: refetchUsers,
   } = useGetUsersQuery(undefined);
-  console.log(data);
 
   const handleRefetchData = async (type: string) => {
     try {
@@ -65,7 +58,6 @@ export default function Admin() {
 
   return (
     <>
-      {" "}
       <div className="hidden h-full flex-1 flex-col space-y-2 px-8 py-4 md:flex">
         <div className="flex items-center justify-between space-y-2">
           <div>
@@ -80,7 +72,7 @@ export default function Admin() {
           <div className="flex items-center space-x-2">
             <Button
               className={
-                isAnimating ? "bg-green-400 " : "bg-[#cb202d] cursor-pointer"
+                isAnimating ? "bg-green-400 " : "bg-black cursor-pointer"
               }
               onClick={() => handleRefetchData("issues")}
             >

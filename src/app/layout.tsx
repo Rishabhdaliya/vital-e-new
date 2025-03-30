@@ -34,7 +34,7 @@ export default function RootLayout({
         <SessionWrapper>
           <Toaster />
           <Header />
-          {children}
+          <div className="max-screen-w-xl">{children}</div>
         </SessionWrapper>
       </body>
     </html>

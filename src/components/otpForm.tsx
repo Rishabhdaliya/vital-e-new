@@ -147,7 +147,7 @@ export function OTPForm({ phoneNumber }: OTPFormProps) {
     <div className="flex flex-col gap-3 items-center">
       {!isOtpSent ? (
         <Button
-          className="w-full bg-[#cb202d] text-white cursor-pointer"
+          className="w-full bg-black text-white cursor-pointer"
           onClick={sendOTP}
           disabled={loading}
         >

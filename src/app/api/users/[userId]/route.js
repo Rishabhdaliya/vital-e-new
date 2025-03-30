@@ -86,3 +86,60 @@ export async function PUT(req, { params }) {
     );
   }
 }
+
+export async function GET(req, { params }) {
+  try {
+    const { userId } = await params;
+    if (!userId) {
+      console.error("User ID is missing");
+      return NextResponse.json(
+        { message: "User ID is missing in the request params" },
+        { status: 400 }
+      );
+    }
+
+    // Reference to the users collection in Firestore
+    const usersCollection = collection(db, "users");
+    const userRef = doc(usersCollection, userId);
+
+    // Fetch the document
+    let userDoc;
+    try {
+      userDoc = await getDoc(userRef);
+      console.log("Fetched document:", userDoc.data());
+    } catch (fetchError) {
+      console.error("Error fetching document:", fetchError);
+      return NextResponse.json(
+        {
+          message: "Error fetching user data",
+          error: fetchError.message,
+        },
+        { status: 500 }
+      );
+    }
+
+    if (userDoc.exists()) {
+      // Include the userId in the response
+      const userData = userDoc.data();
+      return NextResponse.json({
+        message: "User fetched successfully",
+        status: 200,
+        data: {
+          id: userId, // Include the userId here
+          ...userData, // Spread the rest of the document data
+        },
+      });
+    } else {
+      return NextResponse.json(
+        { message: "User not found", status: 404 },
+        { status: 404 }
+      );
+    }
+  } catch (error) {
+    console.error("Error fetching user:", error);
+    return NextResponse.json(
+      { message: "Error fetching user", error: error.message },
+      { status: 500 }
+    );
+  }
+}

@@ -1,4 +1,4 @@
-import { createSlice } from '@reduxjs/toolkit';
+import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
   options: [],
@@ -6,11 +6,11 @@ const initialState = {
   loaded: false,
   needsRefetch: true,
 };
-const defectStatusSlice = createSlice({
-  name: 'defectStatus',
+const vouchersSlice = createSlice({
+  name: "vouchers",
   initialState,
   reducers: {
-    setDefectStatusOptions: (state, action) => {
+    setVouchersOptions: (state, action) => {
       state.options = action.payload.data;
       state.loading = false;
       state.loaded = true;
@@ -26,6 +26,6 @@ const defectStatusSlice = createSlice({
   },
 });
 
-export const { setDefectStatusOptions, setLoading, resetState } =
-  defectStatusSlice.actions;
-export default defectStatusSlice.reducer;
+export const { setVouchersOptions, setLoading, resetState } =
+  vouchersSlice.actions;
+export default vouchersSlice.reducer;

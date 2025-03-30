@@ -23,7 +23,7 @@ export function DataTableViewOptions<TData>({
 }: DataTableViewOptionsProps<TData>) {
   useEffect(() => {
     // Define the column IDs you want to hide by default
-    const columnsToHide = ["coupons"];
+    const columnsToHide = ["vouchers"];
 
     // Loop through each column and set visibility to false
     columnsToHide.forEach((phoneNo) => {
