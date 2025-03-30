@@ -9,7 +9,6 @@ import { log } from "console";
 import VoucherGenerator from "@/components/VoucherGenerator";
 import * as React from "react";
 
-import { cn } from "@/lib/utils";
 // import { useMediaQuery } from "@/hooks/use-media-query";
 import { Button } from "@/components/ui/button";
 import {
@@ -20,18 +19,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import {
-  Drawer,
-  DrawerClose,
-  DrawerContent,
-  DrawerDescription,
-  DrawerFooter,
-  DrawerHeader,
-  DrawerTitle,
-  DrawerTrigger,
-} from "@/components/ui/drawer";
 
-export function DrawerDialogDemo() {
+function DrawerDialogDemo() {
   const [open, setOpen] = React.useState(false);
   // const isDesktop = useMediaQuery("(min-width: 768px)");
 
@@ -46,36 +35,9 @@ export function DrawerDialogDemo() {
       </DialogContent>
     </Dialog>
   );
-  // }
-
-  return (
-    <Drawer open={open} onOpenChange={setOpen}>
-      <DrawerTrigger asChild>
-        <Button variant="outline">Bulk Upload Voucher</Button>
-      </DrawerTrigger>
-      <DrawerContent>
-        <DrawerHeader className="text-left">
-          <DrawerTitle>Edit profile</DrawerTitle>
-          <DrawerDescription>
-            Make changes to your profile here. Click save when you're done.
-          </DrawerDescription>
-        </DrawerHeader>
-        <VoucherGenerator />
-        <DrawerFooter className="pt-2">
-          <DrawerClose asChild>
-            <Button variant="outline">Cancel</Button>
-          </DrawerClose>
-        </DrawerFooter>
-      </DrawerContent>
-    </Drawer>
-  );
 }
 
-export default function UserProfilePage({
-  params,
-}: {
-  params: { id: string };
-}) {
+export default function UserProfilePage({ params }: { params: any }) {
   const { data: vouchers, error, isLoading } = useGetVouchersQuery(params.id);
   const { toast } = useToast();
 

@@ -8,33 +8,6 @@ import { Separator } from "@/components/ui/separator";
 import { Users } from "@/components/issues/data/schema";
 import { Voucher } from "@/components/types/schema";
 
-// Mock function to fetch voucher data - replace with your actual data fetching logic
-async function getUserVouchers(userId: string) {
-  // Simulate API call
-  await new Promise((resolve) => setTimeout(resolve, 1500));
-
-  // This would be your actual data fetching logic
-  return {
-    total: 12,
-    claimed: 5,
-    unclaimed: 7,
-    vouchers: [
-      { id: "V001", issueDate: "2023-10-15", status: "Claimed" },
-      { id: "V002", issueDate: "2023-10-20", status: "Claimed" },
-      { id: "V003", issueDate: "2023-11-01", status: "Not Claimed" },
-      { id: "V004", issueDate: "2023-11-05", status: "Not Claimed" },
-      { id: "V005", issueDate: "2023-11-10", status: "Claimed" },
-      { id: "V006", issueDate: "2023-11-15", status: "Expired" },
-      { id: "V007", issueDate: "2023-11-20", status: "Claimed" },
-      { id: "V008", issueDate: "2023-11-25", status: "Not Claimed" },
-      { id: "V009", issueDate: "2023-12-01", status: "Claimed" },
-      { id: "V010", issueDate: "2023-12-05", status: "Not Claimed" },
-      { id: "V011", issueDate: "2023-12-10", status: "Not Claimed" },
-      { id: "V012", issueDate: "2023-12-15", status: "Not Claimed" },
-    ],
-  };
-}
-
 async function getUser(id: string) {
   // Fetch user data from your API
   const res = await fetch(`http://localhost:3000/api/users/${id}`);
@@ -44,11 +17,7 @@ async function getUser(id: string) {
   return res.json();
 }
 
-export default async function UserProfilePage({
-  params,
-}: {
-  params: { id: string };
-}) {
+export default async function UserProfilePage({ params }: { params: any }) {
   const { data } = await getUser(params.id);
 
   if (!data) {
