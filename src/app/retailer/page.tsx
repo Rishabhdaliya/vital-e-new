@@ -3,7 +3,6 @@
 import { RegistrationForm } from "@/components/registration-form";
 import { useToast } from "@/hooks/use-toast";
 import { useAddUserMutation } from "@/redux/features/users/usersApi";
-import { v4 as uuidv4 } from "uuid";
 
 export default function Retailer() {
   const { toast } = useToast();
@@ -26,13 +25,13 @@ export default function Retailer() {
     }
   };
   return (
-    <>
+    <div className="flex justify-center items-center h-[calc(100vh)] bg-gray-100">
       <RegistrationForm
         role="RETAILER"
         handleRegistrationForm={handleRegistrationForm}
         heading={"Retailer Registration Form"}
         className="w-sm mx-auto mt-20"
       />
-    </>
+    </div>
   );
 }

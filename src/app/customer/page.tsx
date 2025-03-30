@@ -25,13 +25,13 @@ export default function Customer() {
     }
   };
   return (
-    <>
+    <div className="flex justify-center items-center h-[calc(100vh)] bg-gray-100">
       <RegistrationForm
         role="CUSTOMER"
         handleRegistrationForm={handleRegistrationForm}
         heading={"Customer Registration Form"}
         className="w-sm mx-auto mt-20"
       />
-    </>
+    </div>
   );
 }

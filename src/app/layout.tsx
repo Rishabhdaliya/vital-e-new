@@ -34,7 +34,7 @@ export default function RootLayout({
         <SessionWrapper>
           <Toaster />
           <Header />
-          {children}
+          <div className="md:mx-8 mx-3">{children}</div>
         </SessionWrapper>
       </body>
     </html>

@@ -21,6 +21,21 @@ export const usersApi = api.injectEndpoints({
         }
       },
     }),
+    getUserById: builder.mutation({
+      query: ({ userId }) => ({
+        url: `/api/users/${userId}`,
+        method: "GET",
+      }),
+      async onQueryStarted({ userId }, { dispatch, queryFulfilled }) {
+        try {
+          const { data } = await queryFulfilled; // Get the response from the mutation
+          // Dispatch an action to update the specific user in the Redux state
+          dispatch(updateUser({ userId, updatedUser: data.data }));
+        } catch (error) {
+          console.error("Failed to update user:", error);
+        }
+      },
+    }),
     addUser: builder.mutation({
       query: (newUserPayload) => ({
         url: `/api/users`,
@@ -57,5 +72,9 @@ export const usersApi = api.injectEndpoints({
   overrideExisting: true, // This flag allows overriding of existing endpoints
 });
 
-export const { useGetUsersQuery, useUpdateUsersMutation, useAddUserMutation } =
-  usersApi;
+export const {
+  useGetUsersQuery,
+  useGetUserByIdMutation,
+  useUpdateUsersMutation,
+  useAddUserMutation,
+} = usersApi;

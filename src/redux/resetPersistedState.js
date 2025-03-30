@@ -4,7 +4,7 @@ import { persistor } from "./store"; // Adjust the path as needed
 import { store } from "./store";
 import { resetState as resetUsers } from "./features/users/usersSlice";
 import { resetState as resetConfiguration } from "./features/configuration/configurationSlice";
-import { resetState as resetDefectStatus } from "./features/defectStatus/defectStatusSlice";
+import { resetState as resetDefectStatus } from "./features/vouchers/vouchersSlice";
 
 export const resetPersistedState = () => {
   // Purge persisted data from storage
