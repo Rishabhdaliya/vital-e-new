@@ -40,6 +40,21 @@ export async function POST(request) {
       createdAt: new Date(),
     };
 
+    // Check if a user with the same phone number already exists
+    const usersRef = collection(db, "users");
+
+    const querySnapshot = await getDocs(usersRef);
+    const existingUser = querySnapshot.docs.find(
+      (doc) => doc.data().phoneNo === phoneNo
+    );
+
+    if (existingUser) {
+      return NextResponse.json(
+        { message: "A user with this phone number already exists" },
+        { status: 409 } // 409 Conflict status code
+      );
+    }
+
     const docRef = await addDoc(collection(db, "users"), newUser);
 
     return NextResponse.json(

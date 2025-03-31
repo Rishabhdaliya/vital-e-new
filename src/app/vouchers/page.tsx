@@ -1,48 +1,43 @@
 "use client";
+
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import VoucherTable from "@/components/profile/voucher-table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { useGetVouchersQuery } from "@/redux/features/vouchers/vouchersApi";
-import { log } from "console";
 import VoucherGenerator from "@/components/VoucherGenerator";
 import * as React from "react";
 
-// import { useMediaQuery } from "@/hooks/use-media-query";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Card } from "@/components/ui/card";
 
-function DrawerDialogDemo() {
+function BulkUploadDialog() {
   const [open, setOpen] = React.useState(false);
-  // const isDesktop = useMediaQuery("(min-width: 768px)");
 
-  // if (isDesktop) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button variant="outline">Bulk Upload Voucher</Button>
       </DialogTrigger>
-      <Card>
-        <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[425px]">
+        <DialogHeader>
           <DialogTitle>Bulk Upload Voucher</DialogTitle>
-          <VoucherGenerator />
-        </DialogContent>
-      </Card>
+        </DialogHeader>
+        <VoucherGenerator />
+      </DialogContent>
     </Dialog>
   );
 }
 
-export default function UserProfilePage({ params }: { params: any }) {
-  const { data: vouchers, error, isLoading } = useGetVouchersQuery(params.id);
+export default function VouchersPage() {
+  const { data: vouchers, error, isLoading } = useGetVouchersQuery("");
   const { toast } = useToast();
 
   if (isLoading) {
@@ -59,12 +54,13 @@ export default function UserProfilePage({ params }: { params: any }) {
   }
 
   return (
-    <div className="mt-20 md:px-8 py-4 mx-auto">
-      <div className="mb-4 flex items-center justify-end space-x-2">
-        <DrawerDialogDemo />
+    <div className="container mx-auto mt-20 py-6 px-4">
+      <div className="mb-4 flex items-center justify-between">
+        <h1 className="text-2xl font-bold">Vouchers</h1>
+        <BulkUploadDialog />
       </div>
       <Suspense fallback={<TableSkeleton />}>
-        <VoucherTable vouchers={vouchers?.data} />
+        <VoucherTable vouchers={vouchers?.data || []} />
       </Suspense>
     </div>
   );

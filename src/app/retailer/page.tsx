@@ -19,9 +19,14 @@ export default function Retailer() {
         title: "Success",
         description: "The retailer has been registered successfully.",
       });
-    } catch (err) {
+    } catch (err: any) {
+      toast({
+        variant: "success",
+        title: "Error",
+        description: err?.data?.message,
+      });
       // Handle error (e.g., display an error message)
-      console.error("Error creating post:", err);
+      console.log("Error creating post:", err);
     }
   };
   return (

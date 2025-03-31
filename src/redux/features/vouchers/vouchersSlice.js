@@ -5,7 +5,9 @@ const initialState = {
   loading: false,
   loaded: false,
   needsRefetch: true,
+  currentVoucher: null,
 };
+
 const vouchersSlice = createSlice({
   name: "vouchers",
   initialState,
@@ -15,6 +17,9 @@ const vouchersSlice = createSlice({
       state.loading = false;
       state.loaded = true;
       state.needsRefetch = false;
+    },
+    setVoucher: (state, action) => {
+      state.currentVoucher = action.payload;
     },
     setLoading: (state, action) => {
       state.loading = action.payload;
@@ -26,6 +31,6 @@ const vouchersSlice = createSlice({
   },
 });
 
-export const { setVouchersOptions, setLoading, resetState } =
+export const { setVouchersOptions, setVoucher, setLoading, resetState } =
   vouchersSlice.actions;
 export default vouchersSlice.reducer;

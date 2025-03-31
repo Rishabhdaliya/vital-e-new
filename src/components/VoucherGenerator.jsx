@@ -1,155 +1,177 @@
 "use client";
 
 import { useState } from "react";
+import { useFormik } from "formik";
+import * as Yup from "yup";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Loader2, FileSpreadsheet } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { Loader2, Check } from "lucide-react";
+import { db } from "@/lib/firebase/config";
+import { collection, addDoc, Timestamp } from "firebase/firestore";
+import { useGetProductsQuery } from "@/redux/features/products/productApi";
 
 export default function VoucherGenerator() {
-  const [count, setCount] = useState(5);
-  const [vouchers, setVouchers] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [activeTab, setActiveTab] = useState("single");
-  const { toast } = useToast(); // Assuming you have a toast function for notifications
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [generatedCount, setGeneratedCount] = useState(0);
+  const { toast } = useToast();
+  const { data: products = [], isLoading: isLoadingProducts } =
+    useGetProductsQuery("");
 
-  const generateVouchers = async () => {
-    setLoading(true);
-    setError(null);
+  // Form validation schema
+  const validationSchema = Yup.object({
+    prefix: Yup.string()
+      .required("Prefix is required")
+      .matches(/^[A-Z]{3}$/, "Prefix must be exactly 3 uppercase letters"),
+    count: Yup.number()
+      .required("Count is required")
+      .integer("Count must be a whole number")
+      .min(1, "Count must be at least 1")
+      .max(100, "Maximum 100 vouchers can be generated at once"),
+  });
 
-    try {
-      // Determine which endpoint to use based on the active tab
-      const endpoint =
-        activeTab === "bulk"
-          ? "/api/vouchers/bulk-generation"
-          : "/api/vouchers";
+  // Formik setup
+  const formik = useFormik({
+    initialValues: {
+      prefix: "RSV",
+      count: 10,
+    },
+    validationSchema,
+    onSubmit: async (values) => {
+      try {
+        // Check if products are available
+        if (products.length === 0) {
+          toast({
+            title: "No Products Available",
+            description: "Please add products before generating vouchers.",
+            variant: "destructive",
+          });
+          return;
+        }
 
-      const response = await fetch(endpoint, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          count,
-        }),
-      });
+        setIsGenerating(true);
+        setGeneratedCount(0);
 
-      const data = await response.json();
+        // Generate vouchers
+        const vouchersToGenerate = Number.parseInt(values.count.toString(), 10);
+        let successCount = 0;
 
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to generate vouchers");
+        for (let i = 0; i < vouchersToGenerate; i++) {
+          // Generate a random 8-digit number
+          const randomNum = Math.floor(10000000 + Math.random() * 90000000);
+          const batchNo = `${values.prefix}-${randomNum}`;
+
+          // Randomly select a product for this voucher
+          const randomProductIndex = Math.floor(
+            Math.random() * products.length
+          );
+          const selectedProduct = products[randomProductIndex];
+
+          // Create voucher in Firestore
+          await addDoc(collection(db, "vouchers"), {
+            batchNo,
+            status: "UNCLAIMED",
+            createdAt: Timestamp.now(),
+            productId: selectedProduct.id,
+            productName: selectedProduct.name,
+          });
+
+          successCount++;
+          setGeneratedCount(successCount);
+        }
+
+        toast({
+          title: "Success!",
+          description: `Generated ${successCount} vouchers successfully.`,
+        });
+      } catch (error) {
+        console.error("Error generating vouchers:", error);
+        toast({
+          title: "Error",
+          description: `Failed to generate vouchers: ${
+            error.message || "Unknown error"
+          }`,
+          variant: "destructive",
+        });
+      } finally {
+        setIsGenerating(false);
       }
-
-      setVouchers(data.vouchers);
-      toast({
-        title: "Success!",
-        description: `${data.vouchers.length} vouchers generated successfully.`,
-      });
-    } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "An unknown error occurred"
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const downloadVouchersAsCSV = () => {
-    if (!vouchers.length) return;
-
-    // Convert vouchers to CSV format
-    const headers = ["id", "status", "batchNo", "createdAt"];
-
-    let csvContent = headers.join(",") + "\n";
-
-    vouchers.forEach((voucher) => {
-      const createdDate = new Date(
-        voucher.createdAt.seconds * 1000
-      ).toISOString();
-      const row = [voucher.id, voucher.status, voucher.batchNo, createdDate];
-      csvContent += row.join(",") + "\n";
-    });
-
-    // Create and trigger download
-    const encodedUri =
-      "data:text/csv;charset=utf-8," + encodeURIComponent(csvContent);
-    const exportFileDefaultName = `vouchers-${new Date()
-      .toISOString()
-      .slice(0, 10)}.csv`;
-
-    const linkElement = document.createElement("a");
-    linkElement.setAttribute("href", encodedUri);
-    linkElement.setAttribute("download", exportFileDefaultName);
-    linkElement.click();
-  };
+    },
+  });
 
   return (
-    <div className="container mx-auto ">
-      <Card className="max-w-2xl mx-auto">
-        <CardHeader>
-          <CardTitle>Voucher Generator</CardTitle>
-          <CardDescription>
-            Generate unique vouchers with specific format for March 21, 2025
-          </CardDescription>
-          {vouchers.length > 0 && (
-            <Button
-              variant="outline"
-              onClick={downloadVouchersAsCSV}
-              className="w-full sm:w-auto"
-            >
-              <FileSpreadsheet className="mr-2 h-4 w-4" />
-              Download Excel (CSV)
-            </Button>
+    <div className="space-y-6 py-4">
+      <form onSubmit={formik.handleSubmit} className="space-y-4">
+        <div className="space-y-2">
+          <Label htmlFor="prefix">Voucher Prefix</Label>
+          <Input
+            id="prefix"
+            name="prefix"
+            placeholder="RSV"
+            value={formik.values.prefix}
+            onChange={formik.handleChange}
+            onBlur={formik.handleBlur}
+            disabled={isGenerating}
+          />
+          {formik.touched.prefix && formik.errors.prefix && (
+            <p className="text-sm text-red-500">{formik.errors.prefix}</p>
           )}
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="bulk-count">Bulk Count</Label>
-            <Input
-              id="bulk-count"
-              type="number"
-              min="1"
-              max="1000"
-              value={count}
-              onChange={(e) => setCount(Number.parseInt(e.target.value) || 0)}
-            />
-            <p className="text-sm text-muted-foreground">
-              Generate up to 1000 vouchers at once
-            </p>
-          </div>
+        </div>
 
-          {error && (
-            <div className="bg-red-50 text-red-500 p-3 rounded-md">{error}</div>
+        <div className="space-y-2">
+          <Label htmlFor="count">Number of Vouchers</Label>
+          <Input
+            id="count"
+            name="count"
+            type="number"
+            placeholder="10"
+            value={formik.values.count}
+            onChange={formik.handleChange}
+            onBlur={formik.handleBlur}
+            disabled={isGenerating}
+          />
+          {formik.touched.count && formik.errors.count && (
+            <p className="text-sm text-red-500">{formik.errors.count}</p>
           )}
-        </CardContent>
-        <CardFooter className="flex flex-col sm:flex-row gap-3">
-          <Button
-            onClick={generateVouchers}
-            disabled={loading || count <= 0 || count > 1000}
-            className="w-full"
-          >
-            {loading ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Generating...
-              </>
-            ) : (
-              "Generate Vouchers"
-            )}
-          </Button>
-        </CardFooter>
-      </Card>
+        </div>
+
+        <Button
+          type="submit"
+          className="w-full"
+          disabled={isGenerating || isLoadingProducts || products.length === 0}
+        >
+          {isGenerating ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Generating... ({generatedCount}/{formik.values.count})
+            </>
+          ) : (
+            "Generate Vouchers"
+          )}
+        </Button>
+      </form>
+
+      {generatedCount > 0 && !isGenerating && (
+        <div className="rounded-md bg-green-50 p-4">
+          <div className="flex">
+            <div className="flex-shrink-0">
+              <Check className="h-5 w-5 text-green-400" aria-hidden="true" />
+            </div>
+            <div className="ml-3">
+              <h3 className="text-sm font-medium text-green-800">
+                Vouchers Generated Successfully
+              </h3>
+              <div className="mt-2 text-sm text-green-700">
+                <p>
+                  {generatedCount} vouchers have been generated with the prefix{" "}
+                  {formik.values.prefix}.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

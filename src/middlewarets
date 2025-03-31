@@ -20,7 +20,16 @@ export function middleware(request: NextRequest) {
   const userRole = request.cookies.get("userRole")?.value;
 
   // Public paths that don't require authentication
-  const publicPaths = ["/", "/sign-in", "/customer"];
+  const publicPaths = [
+    "/",
+    "/sign-in",
+    "/customer",
+    "/retailer",
+    "/admin",
+    "/dealer",
+    "/vouchers",
+    "/claim-voucher",
+  ];
 
   // Check if the path is public
   const isPublicPath = publicPaths.some(
@@ -51,9 +60,9 @@ export function middleware(request: NextRequest) {
     if (!hasPermission && !isPublicPath) {
       // Redirect to the first allowed path for their role
       // For safety, default to home if no permissions are found
-      const defaultRedirect = permissions[0] || "/";
-      const redirectPath = defaultRedirect === "*" ? "/" : defaultRedirect;
-      return NextResponse.redirect(new URL(redirectPath, request.url));
+      //   const defaultRedirect = permissions[0] || "/";
+      //   const redirectPath = defaultRedirect === "*" ? "/" : defaultRedirect;
+      //   return NextResponse.redirect(new URL(redirectPath, request.url));
     }
   }
 
