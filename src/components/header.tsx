@@ -11,6 +11,9 @@ const navLinks = [
   { href: "/retailer", label: "Retailer" },
   { href: "/dealer", label: "Dealer" },
   { href: "/admin", label: "Admin" },
+  { href: "/vouchers", label: "Vouchers" },
+  { href: "/claim-voucher", label: "Redeem" },
+  { href: "/sign-in", label: "Sign In" },
 ];
 
 export default function Navbar() {

@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Users } from "../issues/data/schema";
 
 interface UserProfileHeaderProps {
-  user: Users;
+  user: any;
 }
 
 export default function UserProfileHeader({ user }: UserProfileHeaderProps) {

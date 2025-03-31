@@ -10,6 +10,13 @@ interface VoucherMetricsProps {
 }
 
 export default function VoucherMetrics({ data }: VoucherMetricsProps) {
+  // Handle edge case where total is 0 to avoid division by zero
+  const claimedPercentage =
+    data.total > 0 ? ((data.claimed / data.total) * 100).toFixed(0) : "0";
+
+  const unclaimedPercentage =
+    data.total > 0 ? ((data.unclaimed / data.total) * 100).toFixed(0) : "0";
+
   return (
     <div className="grid gap-4 md:grid-cols-3">
       <Card>
@@ -35,7 +42,7 @@ export default function VoucherMetrics({ data }: VoucherMetricsProps) {
         <CardContent>
           <div className="text-2xl font-bold">{data.claimed}</div>
           <p className="text-xs text-muted-foreground">
-            {((data.claimed / data.total) * 100).toFixed(0)}% of total vouchers
+            {claimedPercentage}% of total vouchers
           </p>
         </CardContent>
       </Card>
@@ -50,8 +57,7 @@ export default function VoucherMetrics({ data }: VoucherMetricsProps) {
         <CardContent>
           <div className="text-2xl font-bold">{data.unclaimed}</div>
           <p className="text-xs text-muted-foreground">
-            {((data.unclaimed / data.total) * 100).toFixed(0)}% of total
-            vouchers
+            {unclaimedPercentage}% of total vouchers
           </p>
         </CardContent>
       </Card>
