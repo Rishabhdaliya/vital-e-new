@@ -24,18 +24,7 @@ import {
   ChevronRight,
   Search,
 } from "lucide-react";
-
-interface Voucher {
-  id: string;
-  batchNo: string;
-  status: "CLAIMED" | "UNCLAIMED";
-  createdAt: {
-    seconds: number;
-    nanoseconds: number;
-  };
-  productId?: string;
-  productName?: string;
-}
+import { Voucher } from "../types/schema";
 
 interface VoucherTableProps {
   vouchers: Voucher[];
