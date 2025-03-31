@@ -1,6 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import type React from "react";
+
+import { useState, useCallback } from "react";
 import {
   Table,
   TableBody,
@@ -24,33 +26,63 @@ import {
   ChevronRight,
   Search,
 } from "lucide-react";
-import { Voucher } from "../types/schema";
+import type { Voucher } from "@/components/types/schema";
 
 interface VoucherTableProps {
-  vouchers: Voucher[];
+  vouchers: any[];
 }
 
-export default function VoucherTable({ vouchers }: VoucherTableProps) {
+export default function VoucherTable({ vouchers = [] }: VoucherTableProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(5);
 
-  // Filter vouchers based on search term and status
-  const filteredVouchers = vouchers.filter((voucher) => {
-    const matchesSearch =
-      voucher?.batchNo?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
-      voucher?.id?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
-      (voucher.productName &&
-        voucher.productName?.toLowerCase().includes(searchTerm?.toLowerCase()));
+  // Memoized filter function to improve performance
+  const getFilteredVouchers = useCallback(() => {
+    if (!vouchers || !Array.isArray(vouchers)) return [];
 
-    const matchesStatus =
-      statusFilter === "all" ||
-      (statusFilter === "claimed" && voucher.status === "CLAIMED") ||
-      (statusFilter === "unclaimed" && voucher.status === "UNCLAIMED");
+    return vouchers.filter((voucher) => {
+      // Handle potential undefined values safely
+      const batchNo = voucher?.batchNo || "";
+      const id = voucher?.id || "";
+      const productName = voucher?.productName || "";
+      const status = voucher?.status || "";
 
-    return matchesSearch && matchesStatus;
-  });
+      const searchTermLower = searchTerm.toLowerCase();
+
+      const matchesSearch =
+        batchNo.toLowerCase().includes(searchTermLower) ||
+        id.toLowerCase().includes(searchTermLower) ||
+        productName.toLowerCase().includes(searchTermLower);
+
+      const matchesStatus =
+        statusFilter === "all" ||
+        (statusFilter === "claimed" && status === "CLAIMED") ||
+        (statusFilter === "unclaimed" && status === "UNCLAIMED");
+
+      return matchesSearch && matchesStatus;
+    });
+  }, [vouchers, searchTerm, statusFilter]);
+
+  // Get filtered vouchers
+  const filteredVouchers = getFilteredVouchers();
+
+  // Reset to first page when filters change
+  const handleFilterChange = (newFilter: string) => {
+    setStatusFilter(newFilter);
+    setCurrentPage(1);
+  };
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(e.target.value);
+    setCurrentPage(1);
+  };
+
+  const handleItemsPerPageChange = (value: string) => {
+    setItemsPerPage(Number(value));
+    setCurrentPage(1);
+  };
 
   // Pagination
   const indexOfLastItem = currentPage * itemsPerPage;
@@ -59,13 +91,25 @@ export default function VoucherTable({ vouchers }: VoucherTableProps) {
     indexOfFirstItem,
     indexOfLastItem
   );
-  const totalPages = Math.ceil(filteredVouchers.length / itemsPerPage);
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filteredVouchers.length / itemsPerPage)
+  );
 
   // Generate page numbers
   const pageNumbers = [];
   for (let i = 1; i <= totalPages; i++) {
     pageNumbers.push(i);
   }
+
+  // Format date safely
+  const formatDate = (seconds: number) => {
+    try {
+      return new Date(seconds * 1000).toLocaleDateString();
+    } catch (error) {
+      return "Invalid date";
+    }
+  };
 
   return (
     <div className="bg-white rounded-lg border shadow-sm p-6">
@@ -78,13 +122,13 @@ export default function VoucherTable({ vouchers }: VoucherTableProps) {
             placeholder="Search vouchers..."
             className="pl-10"
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={handleSearchChange}
           />
         </div>
 
         <div className="flex gap-2">
           <div className="w-48">
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <Select value={statusFilter} onValueChange={handleFilterChange}>
               <SelectTrigger>
                 <div className="flex items-center">
                   <SelectValue placeholder="All Statuses" />
@@ -101,7 +145,7 @@ export default function VoucherTable({ vouchers }: VoucherTableProps) {
           <div className="w-40">
             <Select
               value={itemsPerPage.toString()}
-              onValueChange={(value) => setItemsPerPage(Number.parseInt(value))}
+              onValueChange={handleItemsPerPageChange}
             >
               <SelectTrigger>
                 <div className="flex items-center">
@@ -136,13 +180,13 @@ export default function VoucherTable({ vouchers }: VoucherTableProps) {
               currentVouchers.map((voucher) => (
                 <TableRow key={voucher.id}>
                   <TableCell className="font-medium">
-                    {voucher.id.substring(0, 12)}...
+                    {voucher.id?.substring(0, 12) || ""}...
                   </TableCell>
-                  <TableCell>{voucher.batchNo}</TableCell>
+                  <TableCell>{voucher.batchNo || ""}</TableCell>
                   <TableCell>
-                    {new Date(
-                      voucher.createdAt.seconds * 1000
-                    ).toLocaleDateString()}
+                    {voucher.createdAt?.seconds
+                      ? formatDate(voucher.createdAt.seconds)
+                      : "N/A"}
                   </TableCell>
                   <TableCell>
                     {voucher.productName || "No product assigned"}
