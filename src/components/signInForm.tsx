@@ -3,19 +3,8 @@
 import { useState } from "react";
 import { useFormik } from "formik";
 import * as Yup from "yup";
-import { initializeApp } from "firebase/app";
-import {
-  getAuth,
-  signInWithPhoneNumber,
-  RecaptchaVerifier,
-} from "firebase/auth";
-import {
-  getFirestore,
-  collection,
-  query,
-  where,
-  getDocs,
-} from "firebase/firestore";
+import { signInWithPhoneNumber, RecaptchaVerifier } from "firebase/auth";
+import { collection, query, where, getDocs } from "firebase/firestore";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -33,18 +22,20 @@ import {
   InputOTPSlot,
   InputOTPSeparator,
 } from "@/components/ui/input-otp";
-import { Toaster } from "@/components/ui/toaster";
 import { Loader2, ArrowRight, Phone } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { auth, db } from "@/lib/firebase/config";
 import { useToast } from "@/hooks/use-toast";
+import { useDispatch } from "react-redux";
+import { setCurrentUser } from "@/redux/features/users/usersSlice";
+import { auth, db } from "@/lib/firebase/config";
 
-export default function SignInForm() {
+export default function SignInPage() {
   const [step, setStep] = useState<"phone" | "otp">("phone");
   const [otp, setOtp] = useState("");
   const [loading, setLoading] = useState(false);
   const [confirmationResult, setConfirmationResult] = useState<any>(null);
   const router = useRouter();
+  const dispatch = useDispatch();
   const { toast } = useToast();
 
   // Setup reCAPTCHA verifier
@@ -144,27 +135,44 @@ export default function SignInForm() {
       // Verify OTP
       await confirmationResult.confirm(otp);
 
-      // Check user role and redirect accordingly
+      // Get user data
       const usersRef = collection(db, "users");
       const userQuery = query(
         usersRef,
         where("phoneNo", "==", formik.values.phoneNo)
       );
       const userSnapshot = await getDocs(userQuery);
-      const userDoc = userSnapshot.docs[0].data();
 
-      toast({
-        title: "Sign In Successful",
-        description: "You have been signed in successfully.",
-      });
+      if (!userSnapshot.empty) {
+        const userDoc = userSnapshot.docs[0];
+        const userData = userDoc.data();
 
-      // Redirect based on user role
-      if (userDoc.role === "CUSTOMER") {
-        router.push("/customer");
-      } else if (userDoc.role === "RETAILER") {
-        router.push("/retailer");
-      } else {
-        router.push("/");
+        // Store user data in Redux
+        const user = {
+          id: userDoc.id,
+          ...userData,
+        };
+        console.log(user);
+
+        // Dispatch action to store user in Redux
+        dispatch(setCurrentUser(user));
+
+        // Store user ID in localStorage for persistence
+        localStorage.setItem("userId", userDoc.id);
+
+        toast({
+          title: "Sign In Successful",
+          description: "You have been signed in successfully.",
+        });
+
+        // Redirect based on user role
+        if (userData.role === "CUSTOMER") {
+          router.push("/customer");
+        } else if (userData.role === "RETAILER") {
+          router.push("/retailer");
+        } else {
+          router.push("/");
+        }
       }
     } catch (error) {
       console.error("Error verifying OTP:", error);
@@ -179,13 +187,13 @@ export default function SignInForm() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center p-4">
+    <div className="flex min-h-screen items-center justify-center  p-4">
       <Card className="w-full max-w-md shadow-lg">
-        <CardHeader className="space-y-1">
+        <CardHeader className="space-y-2">
           <CardTitle className="text-3xl font-bold text-center">
             VITAL-E
           </CardTitle>
-          <CardDescription className="text-lg  text-center">
+          <CardDescription className="text-lg font-semibold text-center">
             Sign In
           </CardDescription>
           <CardDescription className="text-center">
@@ -321,16 +329,15 @@ export default function SignInForm() {
             </div>
           )}
         </CardContent>
-        {/* <CardFooter className="flex flex-col space-y-2">
+        <CardFooter className="flex flex-col space-y-2">
           <div className="text-sm text-center text-muted-foreground">
             Don&apos;t have an account?{" "}
             <a href="/signup" className="text-primary hover:underline">
               Sign up
             </a>
           </div>
-        </CardFooter> */}
+        </CardFooter>
       </Card>
-      <Toaster />
     </div>
   );
 }
