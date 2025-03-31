@@ -2,6 +2,7 @@ import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
   data: [], // Set to an empty array initially
+  currentUser: null, // Add currentUser to store the signed-in user
   loaded: false,
   needsRefetch: false, // Add a needsRefetch flag
   loading: false, // Add a loading state to track the fetching process
@@ -12,10 +13,13 @@ const usersSlice = createSlice({
   initialState,
   reducers: {
     setUsers: (state, action) => {
-      state.data = action.payload.data; // Directly assuming payload is the data
+      state.data = action.payload; // Directly assuming payload is the data
       state.loaded = true;
       state.needsRefetch = false; // Reset the flag after successful data fetch
       state.loading = false; // Set loading to false after data fetch
+    },
+    setCurrentUser: (state, action) => {
+      state.currentUser = action.payload; // Set the current authenticated user
     },
     setUsersLoaded: (state, action) => {
       state.loaded = action.payload;
@@ -50,9 +54,20 @@ const usersSlice = createSlice({
         console.error("Data is not an array.");
       }
     },
+    logout: (state) => {
+      state.currentUser = null; // Clear the current user on logout
+    },
   },
 });
 
-export const { setUsers, setUsersLoaded, resetState, updateUsers, setLoading } =
-  usersSlice.actions;
+export const {
+  setUsers,
+  setCurrentUser,
+  setUsersLoaded,
+  resetState,
+  updateUsers,
+  setLoading,
+  logout,
+} = usersSlice.actions;
+
 export default usersSlice.reducer;
