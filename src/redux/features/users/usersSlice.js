@@ -2,7 +2,7 @@ import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
   data: [], // Set to an empty array initially
-  currentUser: null, // Add currentUser to store the signed-in user
+  currentUser: null,
   loaded: false,
   needsRefetch: false, // Add a needsRefetch flag
   loading: false, // Add a loading state to track the fetching process

@@ -4,6 +4,7 @@ import "./globals.css";
 import Header from "@/components/header";
 import SessionWrapper from "@/lib/SessionWrapper";
 import { Toaster } from "@/components/ui/toaster";
+import { RouteGuard } from "@/components/auth-guard/auth-guard";
 // import { Toaster } from "@/components/ui/toaster";
 
 const geistSans = Geist({
@@ -34,7 +35,9 @@ export default function RootLayout({
         <SessionWrapper>
           <Toaster />
           <Header />
-          <div className="md:px-8 px-3 ">{children}</div>
+          <RouteGuard>
+            <div className="md:px-8 px-3 ">{children}</div>
+          </RouteGuard>
         </SessionWrapper>
       </body>
     </html>
