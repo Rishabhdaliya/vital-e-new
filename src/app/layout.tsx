@@ -35,9 +35,9 @@ export default function RootLayout({
         <SessionWrapper>
           <Toaster />
           <Header />
-          <RouteGuard>
-            <div className="md:px-8 px-3 ">{children}</div>
-          </RouteGuard>
+          {/* <RouteGuard> */}
+          <div className="md:px-8 px-3 ">{children}</div>
+          {/* </RouteGuard> */}
         </SessionWrapper>
       </body>
     </html>
