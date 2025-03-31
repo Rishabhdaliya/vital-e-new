@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { any, z } from "zod";
 
 export const userSchema = z.object({
   id: z.string(),
@@ -13,7 +13,11 @@ export const userSchema = z.object({
 export const voucherSchema = z.object({
   id: z.string(),
   batchNo: z.string(),
-  createdAt: z.number(),
+  productId: z.string(),
+  claimedAt: z.string().optional(),
+  claimedBy: z.string().optional(),
+  productName: z.string(),
+  createdAt: z.any(),
   status: z.enum(["CLAIMED", "UNCLAIMED", "EXPIRED"]),
 });
 
