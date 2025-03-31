@@ -29,7 +29,8 @@
     ".next/types/**/*.ts",
     "src/lib/firebase/auth.js",
     "src/lib/firebase/serverApp.js",
-    "src/lib/config.js"
+    "src/lib/config.js",
+    "src/middlewarets"
   ],
   "exclude": ["node_modules"]
 }
