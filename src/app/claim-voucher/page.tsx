@@ -15,22 +15,24 @@ import {
 } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import {
-  doc,
-  updateDoc,
-  arrayUnion,
-  query,
-  where,
-  collection,
-  getDocs,
-} from "firebase/firestore";
-import { db } from "@/lib/firebase/config";
-import { CheckCircle2, Loader2 } from "lucide-react";
+  CheckCircle2,
+  Loader2,
+  Gift,
+  SnowflakeIcon as Confetti,
+} from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useClaimVoucherMutation } from "@/redux/features/vouchers/vouchersApi";
 
 export default function ClaimVoucher() {
-  const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [claimedProduct, setClaimedProduct] = useState<{
+    name: string;
+    id: string;
+  } | null>(null);
   const { toast } = useToast();
+
+  // Use the RTK Query mutation hook
+  const [claimVoucher, { isLoading }] = useClaimVoucherMutation();
 
   // Form validation schema
   const formSchema = Yup.object().shape({
@@ -51,76 +53,19 @@ export default function ClaimVoucher() {
     validationSchema: formSchema,
     onSubmit: async (values) => {
       try {
-        setLoading(true);
+        // Use the RTK Query mutation to claim the voucher
+        const result = await claimVoucher({
+          phoneNo: values.phoneNo,
+          batchNo: values.batchNo,
+        }).unwrap(); // unwrap() extracts the payload from the fulfilled action
 
-        // Check if user exists
-        const usersRef = collection(db, "users");
-        const userQuery = query(
-          usersRef,
-          where("phoneNo", "==", values.phoneNo)
-        );
-        const userSnapshot = await getDocs(userQuery);
-
-        if (userSnapshot.empty) {
-          toast({
-            title: "User not found",
-            description: "No account found with this phone number.",
-            variant: "destructive",
+        // Set claimed product for display
+        if (result.data?.product) {
+          setClaimedProduct({
+            name: result.data.product.name,
+            id: result.data.product.id,
           });
-          setLoading(false);
-          return;
         }
-
-        // Check if user is a RETAILER
-        const userData = userSnapshot.docs[0].data();
-        if (userData.role !== "RETAILER") {
-          toast({
-            title: "Access Denied",
-            description:
-              "Only retailers can claim vouchers. You are not authorized.",
-            variant: "destructive",
-          });
-          setLoading(false);
-          return;
-        }
-
-        // Check if voucher exists and is unclaimed
-        const vouchersRef = collection(db, "vouchers");
-        const voucherQuery = query(
-          vouchersRef,
-          where("batchNo", "==", values.batchNo),
-          where("status", "==", "UNCLAIMED")
-        );
-        const voucherSnapshot = await getDocs(voucherQuery);
-
-        if (voucherSnapshot.empty) {
-          toast({
-            title: "Invalid Batch Number",
-            description:
-              "This voucher doesn't exist or has already been claimed.",
-            variant: "destructive",
-          });
-          setLoading(false);
-          return;
-        }
-
-        // Get voucher and user documents
-        const voucherDoc = voucherSnapshot.docs[0];
-        const voucherId = voucherDoc.id;
-        const userDoc = userSnapshot.docs[0];
-        const userId = userDoc.id;
-
-        // Update voucher status
-        await updateDoc(doc(db, "vouchers", voucherId), {
-          status: "CLAIMED",
-          claimedBy: userId,
-          claimedAt: new Date(),
-        });
-
-        // Add voucher to user's vouchers array
-        await updateDoc(doc(db, "users", userId), {
-          vouchers: arrayUnion(voucherId),
-        });
 
         setSuccess(true);
         toast({
@@ -131,13 +76,9 @@ export default function ClaimVoucher() {
         console.error("Error claiming voucher:", error);
         toast({
           title: "Error",
-          description: `An unexpected error occurred: ${
-            error.message || "Unknown error"
-          }`,
+          description: error.data?.message || "Failed to claim voucher",
           variant: "destructive",
         });
-      } finally {
-        setLoading(false);
       }
     },
   });
@@ -145,23 +86,106 @@ export default function ClaimVoucher() {
   return (
     <div className="container max-w-md mt-10 mx-auto py-10">
       {success ? (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-center">Voucher Claimed!</CardTitle>
-            <CardDescription className="text-center">
-              Your voucher has been successfully added to your account.
+        <Card className="overflow-hidden">
+          <div className="bg-gradient-to-r from-blue-500 to-purple-600 p-6 text-white relative overflow-hidden">
+            {/* Animated confetti particles */}
+            <div className="absolute inset-0">
+              {[...Array(20)].map((_, i) => (
+                <span
+                  key={i}
+                  className="absolute block w-2 h-2 rounded-full opacity-70"
+                  style={{
+                    backgroundColor: [
+                      "#FFD700",
+                      "#FF3E4D",
+                      "#22CAFC",
+                      "#4EF6A5",
+                      "#FFEB3B",
+                    ][i % 5],
+                    top: `${Math.random() * 100}%`,
+                    left: `${Math.random() * 100}%`,
+                    animation: `confetti-fall ${
+                      2 + Math.random() * 3
+                    }s linear infinite`,
+                    animationDelay: `${Math.random() * 5}s`,
+                  }}
+                />
+              ))}
+            </div>
+
+            <div className="flex justify-center mb-4">
+              <div className="relative">
+                {/* Animated sparkles around the gift */}
+                {[...Array(5)].map((_, i) => (
+                  <div
+                    key={i}
+                    className="absolute w-3 h-3"
+                    style={{
+                      top: `${Math.sin((i * Math.PI * 2) / 5) * 40 + 50}%`,
+                      left: `${Math.cos((i * Math.PI * 2) / 5) * 40 + 50}%`,
+                      animation: `sparkle ${
+                        1 + Math.random()
+                      }s ease-in-out infinite`,
+                      animationDelay: `${i * 0.2}s`,
+                    }}
+                  >
+                    <Confetti className="h-full w-full text-yellow-300 animate-pulse" />
+                  </div>
+                ))}
+
+                {/* Animated gift icon */}
+                <div className="w-24 h-24 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center relative z-10 animate-bounce-slow">
+                  <div className="absolute inset-0 rounded-full bg-white/10 animate-ping-slow opacity-75"></div>
+                  <Gift className="h-12 w-12 text-white animate-pulse" />
+                </div>
+              </div>
+            </div>
+
+            <CardTitle className="text-center text-2xl font-bold animate-fade-in">
+              Congratulations!
+            </CardTitle>
+            <CardDescription className="text-center text-white/90 mt-2 animate-slide-up">
+              You've successfully claimed your voucher
             </CardDescription>
-          </CardHeader>
-          <CardContent className="flex justify-center">
-            <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center">
-              <CheckCircle2 className="h-8 w-8 text-green-600" />
+          </div>
+
+          <CardContent>
+            <div className="bg-blue-50 border border-blue-100 rounded-lg p-4 mb-4 animate-fade-in">
+              <h3 className="text-sm font-medium text-blue-800 mb-1">
+                You won:
+              </h3>
+              <p className="text-xl font-bold text-blue-900 animate-highlight">
+                {claimedProduct?.name || "Product"}
+              </p>
+            </div>
+
+            <div className="space-y-3 animate-fade-in-delayed">
+              <div>
+                <p className="text-sm font-medium text-gray-500">
+                  Voucher Batch Number:
+                </p>
+                <p className="font-medium">{formik.values.batchNo}</p>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-500">Claimed By:</p>
+                <p className="font-medium">{formik.values.phoneNo}</p>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-500">Status:</p>
+                <div className="flex items-center">
+                  <CheckCircle2 className="h-4 w-4 text-green-600 mr-1 animate-check" />
+                  <span className="text-green-600 font-medium">Claimed</span>
+                </div>
+              </div>
             </div>
           </CardContent>
+
           <CardFooter>
             <Button
-              className="w-full"
+              className="w-full animate-pulse-slow"
               onClick={() => {
                 setSuccess(false);
+                setClaimedProduct(null);
                 formik.resetForm();
               }}
             >
@@ -213,8 +237,8 @@ export default function ClaimVoucher() {
                 )}
               </div>
 
-              <Button type="submit" className="w-full" disabled={loading}>
-                {loading ? (
+              <Button type="submit" className="w-full" disabled={isLoading}>
+                {isLoading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     Processing...

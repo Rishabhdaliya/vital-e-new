@@ -1,5 +1,5 @@
 import { api } from "../../api";
-import { setVouchersOptions, setLoading } from "./vouchersSlice";
+import { setVouchersOptions, setLoading, setVoucher } from "./vouchersSlice";
 
 export const vouchersApi = api.injectEndpoints({
   endpoints: (builder) => ({
@@ -19,7 +19,7 @@ export const vouchersApi = api.injectEndpoints({
           // Dispatch to store data in vouchers slice
           dispatch(setVouchersOptions(data));
         } catch (error) {
-          console.error("Failed to load defect status data:", error);
+          console.error("Failed to load vouchers data:", error);
         } finally {
           // Set loading to false when fetching is complete
           dispatch(setLoading(false));
@@ -27,22 +27,35 @@ export const vouchersApi = api.injectEndpoints({
       },
     }),
     addVoucher: builder.mutation({
-      query: (newVoucherayload) => ({
+      query: (newVoucherPayload) => ({
         url: `/api/vouchers`,
         method: "POST",
-        body: JSON.stringify(newVoucherayload),
+        body: JSON.stringify(newVoucherPayload),
       }),
       async onQueryStarted(arg, { dispatch, queryFulfilled }) {
         try {
           const { data } = await queryFulfilled; // Get the response from the mutation
-          // Optionally, you can dispatch an action to add the new user to the Redux state
+          // Optionally, you can dispatch an action to add the new voucher to the Redux state
           dispatch(setVoucher(data.data));
         } catch (error) {
-          console.error("Failed to add user:", error);
+          console.error("Failed to add voucher:", error);
         }
       },
+    }),
+
+    claimVoucher: builder.mutation({
+      query: (claimData) => ({
+        url: `/api/vouchers/claim`,
+        method: "POST",
+        body: JSON.stringify(claimData),
+      }),
+      // No need for onQueryStarted as we'll handle the response directly in the component
     }),
   }),
 });
 
-export const { useGetVouchersQuery, useAddVoucherMutation } = vouchersApi;
+export const {
+  useGetVouchersQuery,
+  useAddVoucherMutation,
+  useClaimVoucherMutation,
+} = vouchersApi;
