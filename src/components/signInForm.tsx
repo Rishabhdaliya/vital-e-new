@@ -168,8 +168,10 @@ export default function SignInPage() {
         // Redirect based on user role
         if (userData.role === "CUSTOMER") {
           router.push("/customer");
-        } else if (userData.role === "RETAILER") {
+        } else if (userData.role === "DEALER") {
           router.push("/retailer");
+        } else if (userData.role === "ADMIN") {
+          router.push("/admin");
         } else {
           router.push("/");
         }
@@ -329,14 +331,14 @@ export default function SignInPage() {
             </div>
           )}
         </CardContent>
-        <CardFooter className="flex flex-col space-y-2">
+        {/* <CardFooter className="flex flex-col space-y-2">
           <div className="text-sm text-center text-muted-foreground">
             Don&apos;t have an account?{" "}
             <a href="/signup" className="text-primary hover:underline">
               Sign up
             </a>
           </div>
-        </CardFooter>
+        </CardFooter> */}
       </Card>
     </div>
   );

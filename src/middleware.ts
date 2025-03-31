@@ -1,0 +1,69 @@
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
+
+// Define role-based access permissions
+const rolePermissions = {
+  ADMIN: ["*"], // Admin can access everything
+  DEALER: ["/retailer", "/admin", "/vouchers"],
+  RETAILER: ["/vouchers"],
+  CUSTOMER: ["/vouchers", "/customer"],
+};
+
+// This middleware runs on the edge and protects routes based on authentication and roles
+export function middleware(request: NextRequest) {
+  const path = request.nextUrl.pathname;
+
+  // Get the user ID from cookies or headers
+  const userId = request.cookies.get("userId")?.value;
+
+  // Get the user role from cookies (if available)
+  const userRole = request.cookies.get("userRole")?.value;
+
+  // Public paths that don't require authentication
+  const publicPaths = ["/", "/sign-in", "/customer"];
+
+  // Check if the path is public
+  const isPublicPath = publicPaths.some(
+    (publicPath) => path === publicPath || path.startsWith(publicPath + "/")
+  );
+
+  // If the path is public, allow access
+  if (isPublicPath) {
+    return NextResponse.next();
+  }
+
+  // If the user is not logged in, redirect to sign-in
+  if (!userId && !isPublicPath) {
+    return NextResponse.redirect(new URL("/sign-in", request.url));
+  }
+
+  // If we have a role in the cookie, we can do basic role-based checks
+  // Note: For more complex checks, we'll rely on the client-side RouteGuard
+  if (userRole) {
+    const permissions =
+      rolePermissions[userRole as keyof typeof rolePermissions] || [];
+
+    // Check if the user has permission to access this path
+    const hasPermission =
+      permissions.includes("*") || // Admin can access everything
+      permissions.some((perm) => path.startsWith(perm));
+
+    if (!hasPermission && !isPublicPath) {
+      // Redirect to the first allowed path for their role
+      // For safety, default to home if no permissions are found
+      const defaultRedirect = permissions[0] || "/";
+      const redirectPath = defaultRedirect === "*" ? "/" : defaultRedirect;
+      return NextResponse.redirect(new URL(redirectPath, request.url));
+    }
+  }
+
+  return NextResponse.next();
+}
+
+// Configure the paths that this middleware should run on
+export const config = {
+  matcher: [
+    // Match all paths except for static files, api routes, etc.
+    "/((?!api|_next/static|_next/image|favicon.ico).*)",
+  ],
+};
