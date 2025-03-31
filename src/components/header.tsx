@@ -13,6 +13,7 @@ const navLinks = [
   { href: "/admin", label: "Admin" },
   { href: "/vouchers", label: "Vouchers" },
   { href: "/claim-voucher", label: "Redeem" },
+  { href: "/products", label: "Products" },
   { href: "/sign-in", label: "Sign In" },
 ];
 
