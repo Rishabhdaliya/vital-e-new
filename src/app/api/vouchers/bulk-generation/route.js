@@ -6,10 +6,8 @@ import {
   getDocs,
   query,
   where,
-  Timestamp,
-  increment,
-  updateDoc,
 } from "firebase/firestore";
+import { generateVouchers } from "@/lib/voucherGenerator";
 import { db } from "@/lib/firebase/config";
 
 // Function to generate a barcode from batch number
@@ -65,181 +63,110 @@ async function checkExistingVoucher(batchNo, barcode) {
 }
 
 // Function to generate a unique batch number
-function generateBatchNo(prefix = "RSV") {
+function generateUniqueBatchNo() {
+  const prefix = "RSV";
   const randomNum = Math.floor(10000000 + Math.random() * 90000000);
   return `${prefix}-${randomNum}`;
 }
 
-// Function to get available products from Firestore
-async function getAvailableProducts() {
-  try {
-    const productsRef = collection(db, "products");
-    const productsSnapshot = await getDocs(productsRef);
-
-    const products = [];
-    productsSnapshot.forEach((doc) => {
-      const product = { id: doc.id, ...doc.data() };
-      if (product.quantity > 0) {
-        products.push(product);
-      }
-    });
-
-    return products;
-  } catch (error) {
-    console.error("Error fetching products:", error);
-    throw new Error("Failed to fetch available products");
-  }
-}
-
 export async function POST(request) {
-  console.log("POST request received for voucher generation");
+  console.log("POST request received for bulk voucher generation");
 
   try {
     const body = await request.json();
-    const { prefix = "RSV", count } = body;
+    const { count } = body;
 
-    if (!count || count <= 0 || count > 100) {
+    if (!count || count <= 0 || count > 1000) {
       return NextResponse.json(
-        { error: "Count must be a positive number between 1 and 100." },
+        { error: "Count must be a positive number between 1 and 1000." },
         { status: 400 }
       );
     }
 
-    // Get available products
-    const availableProducts = await getAvailableProducts();
+    // Step 1: Check the count from the request
+    console.log(`Generating ${count} vouchers`);
 
-    if (availableProducts.length === 0) {
-      return NextResponse.json(
-        { error: "No products available with quantity greater than 0." },
-        { status: 400 }
-      );
-    }
+    // Step 2: Call the voucher generator function to generate vouchers
+    const vouchers = generateVouchers(count);
+    const processedVouchers = [];
 
-    console.log(`Generating ${count} vouchers with prefix ${prefix}`);
+    // Step 3: Save vouchers to Firestore using batch operation
+    try {
+      const batch = writeBatch(db);
+      const vouchersCollection = collection(db, "vouchers");
 
-    // Generate vouchers
-    const generatedVouchers = [];
-    const batch = writeBatch(db);
-    const vouchersCollection = collection(db, "vouchers");
+      // Process each voucher to ensure uniqueness
+      for (const voucher of vouchers) {
+        let isUnique = false;
+        let attempts = 0;
+        let currentBatchNo = voucher.batchNo;
+        let currentBarcode = "";
 
-    // Track product quantities to update
-    const productUpdates = {};
+        // Try up to 5 times to generate a unique combination
+        while (!isUnique && attempts < 5) {
+          // If this is not the first attempt, generate a new batchNo
+          if (attempts > 0) {
+            currentBatchNo = generateUniqueBatchNo();
+          }
 
-    // Generate vouchers
-    for (let i = 0; i < count; i++) {
-      // Filter products that still have quantity
-      const productsWithQuantity = availableProducts.filter((product) =>
-        productUpdates[product.id]
-          ? product.quantity - productUpdates[product.id] > 0
-          : product.quantity > 0
-      );
+          // Generate barcode for this batch number
+          currentBarcode = generateBarcode(currentBatchNo);
 
-      if (productsWithQuantity.length === 0) {
-        console.log(`Stopped at ${i} vouchers - all products depleted`);
-        break;
-      }
+          // Check if this combination already exists
+          const checkResult = await checkExistingVoucher(
+            currentBatchNo,
+            currentBarcode
+          );
 
-      // Generate unique batch number and barcode
-      let isUnique = false;
-      let attempts = 0;
-      let currentBatchNo = "";
-      let currentBarcode = "";
-
-      while (!isUnique && attempts < 5) {
-        currentBatchNo = generateBatchNo(prefix);
-        currentBarcode = generateBarcode(currentBatchNo);
-
-        // Check if this combination already exists
-        const checkResult = await checkExistingVoucher(
-          currentBatchNo,
-          currentBarcode
-        );
-
-        if (!checkResult.exists) {
-          isUnique = true;
-        } else {
-          console.log(`Duplicate ${checkResult.field} found, retrying...`);
-          attempts++;
+          if (!checkResult.exists) {
+            isUnique = true;
+          } else {
+            console.log(`Duplicate ${checkResult.field} found, retrying...`);
+            attempts++;
+          }
         }
+
+        if (!isUnique) {
+          console.warn(
+            `Could not generate unique voucher after 5 attempts, skipping`
+          );
+          continue;
+        }
+
+        // Create a barcode image URL
+        const barcodeImageUrl = `https://barcodeapi.org/api/code128/${currentBarcode}`;
+
+        // Add to Firestore batch
+        const voucherRef = doc(vouchersCollection, voucher.id);
+        batch.set(voucherRef, {
+          id: voucher.id,
+          status: voucher.status,
+          createdAt: voucher.createdAt,
+          batchNo: currentBatchNo,
+          barcode: currentBarcode,
+          barcodeImageUrl: barcodeImageUrl,
+        });
+
+        // Add to processed vouchers list
+        processedVouchers.push({
+          ...voucher,
+          batchNo: currentBatchNo,
+          barcode: currentBarcode,
+          barcodeImageUrl: barcodeImageUrl,
+        });
       }
 
-      if (!isUnique) {
-        console.warn(
-          `Could not generate unique voucher after 5 attempts, skipping`
-        );
-        continue;
-      }
-
-      // Randomly select a product with available quantity
-      const randomIndex = Math.floor(
-        Math.random() * productsWithQuantity.length
-      );
-      const selectedProduct = productsWithQuantity[randomIndex];
-
-      // Track product quantity update
-      if (!productUpdates[selectedProduct.id]) {
-        productUpdates[selectedProduct.id] = 1;
-      } else {
-        productUpdates[selectedProduct.id]++;
-      }
-
-      // Create barcode image URL
-      const barcodeImageUrl = `https://barcodeapi.org/api/code128/${currentBarcode}`;
-
-      // Create a unique ID for the voucher
-      const voucherId = `${prefix}-${Date.now()}-${i}`;
-
-      // Add to Firestore batch
-      const voucherRef = doc(vouchersCollection, voucherId);
-      const now = new Date();
-
-      batch.set(voucherRef, {
-        id: voucherId,
-        status: "UNCLAIMED",
-        createdAt: Timestamp.now(),
-        batchNo: currentBatchNo,
-        barcode: currentBarcode,
-        barcodeImageUrl: barcodeImageUrl,
-        productId: selectedProduct.id,
-        productName: selectedProduct.name,
-      });
-
-      // Add to generated vouchers list for response
-      generatedVouchers.push({
-        id: voucherId,
-        batchNo: currentBatchNo,
-        barcode: currentBarcode,
-        barcodeImageUrl: barcodeImageUrl,
-        productName: selectedProduct.name,
-        createdAt: now.toISOString(),
-        status: "UNCLAIMED",
-      });
-    }
-
-    // Commit the batch write
-    await batch.commit();
-    console.log(
-      `Successfully saved ${generatedVouchers.length} vouchers to Firestore`
-    );
-
-    // Update product quantities
-    for (const [productId, quantityDecrement] of Object.entries(
-      productUpdates
-    )) {
-      const productRef = doc(db, "products", productId);
-      await updateDoc(productRef, {
-        quantity: increment(-quantityDecrement),
-      });
+      await batch.commit();
       console.log(
-        `Updated product ${productId} quantity: -${quantityDecrement}`
+        `Successfully saved ${processedVouchers.length} vouchers to Firestore`
       );
+    } catch (firestoreError) {
+      console.error("Error saving vouchers to Firestore:", firestoreError);
+      // Continue and return the generated vouchers even if Firestore save fails
     }
 
-    // Return the generated vouchers
-    return NextResponse.json({
-      vouchers: generatedVouchers,
-      message: `Successfully generated ${generatedVouchers.length} vouchers`,
-    });
+    // Return the processed vouchers
+    return NextResponse.json({ vouchers: processedVouchers });
   } catch (error) {
     console.error("Error generating vouchers:", error);
     return NextResponse.json(

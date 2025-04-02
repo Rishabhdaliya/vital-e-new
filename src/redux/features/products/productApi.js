@@ -39,6 +39,19 @@ export const productsApi = api.injectEndpoints({
         }
       },
     }),
+    getAllProducts: builder.query({
+      query: () => ({
+        url: `/api/products/all`,
+        method: "GET",
+      }),
+      async onCacheEntryAdded(arg, { cacheDataLoaded, dispatch, getState }) {
+        try {
+          const state = getState().products;
+        } catch (error) {
+          console.error("Failed to load products:", error);
+        }
+      },
+    }),
     getProductById: builder.query({
       query: (productId) => ({
         url: `/api/products?id=${productId}`,
@@ -108,6 +121,7 @@ export const productsApi = api.injectEndpoints({
 export const {
   useGetProductsQuery,
   useGetProductByIdQuery,
+  useGetAllProductsQuery,
   useAddProductMutation,
   useUpdateProductMutation,
   useDeleteProductMutation,
