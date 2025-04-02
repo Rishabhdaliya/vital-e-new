@@ -8,7 +8,16 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Check, Download, FileText } from "lucide-react";
-import { useGetProductsQuery } from "@/redux/features/products/productApi";
+import { db } from "@/lib/firebase/config";
+import {
+  collection,
+  addDoc,
+  Timestamp,
+  doc,
+  updateDoc,
+  increment,
+} from "firebase/firestore";
+import { useGetAllProductsQuery } from "@/redux/features/products/productApi";
 
 export default function VoucherGenerator() {
   const [isGenerating, setIsGenerating] = useState(false);
@@ -16,7 +25,39 @@ export default function VoucherGenerator() {
   const [generatedVouchers, setGeneratedVouchers] = useState([]);
   const { toast } = useToast();
   const { data: products = [], isLoading: isLoadingProducts } =
-    useGetProductsQuery();
+    useGetAllProductsQuery();
+
+  console.log(products);
+
+  // Function to generate a barcode from batch number
+  // This is a simple implementation - in production you might use a proper barcode library
+  const generateBarcode = (batchNo) => {
+    // Remove any non-alphanumeric characters and convert to uppercase
+    const cleanBatchNo = batchNo.replace(/[^A-Z0-9]/gi, "").toUpperCase();
+
+    // Create a numeric representation by converting letters to their ASCII values
+    let numericCode = "";
+    for (let i = 0; i < cleanBatchNo.length; i++) {
+      const char = cleanBatchNo.charAt(i);
+      // If it's a number, use it directly
+      if (!isNaN(Number.parseInt(char))) {
+        numericCode += char;
+      } else {
+        // If it's a letter, use its ASCII code (A=65, B=66, etc.)
+        numericCode += (char.charCodeAt(0) - 55).toString().padStart(2, "0");
+      }
+    }
+
+    // Add a check digit (simple sum of all digits modulo 10)
+    let sum = 0;
+    for (let i = 0; i < numericCode.length; i++) {
+      sum += Number.parseInt(numericCode.charAt(i));
+    }
+    const checkDigit = sum % 10;
+
+    // Return the final barcode
+    return numericCode + checkDigit;
+  };
 
   // Form validation schema
   const validationSchema = Yup.object({
@@ -41,9 +82,11 @@ export default function VoucherGenerator() {
     // Create CSV content
     const csvContent = generatedVouchers
       .map((voucher) => {
+        // Generate a URL for a barcode image using a free barcode API
+        const barcodeImageUrl = `https://barcodeapi.org/api/code128/${voucher.barcode}`;
         return `${voucher.batchNo},${voucher.productName.replace(/,/g, ";")},${
           voucher.createdAt
-        },${voucher.barcode},${voucher.barcodeImageUrl}`;
+        },${voucher.barcode},${barcodeImageUrl}`;
       })
       .join("\n");
 
@@ -70,7 +113,7 @@ export default function VoucherGenerator() {
     document.body.removeChild(link);
   };
 
-  // Function to generate a printable HTML page with barcodes
+  // Add this function to generate a printable HTML page with barcodes
   const openBarcodePrintPage = () => {
     if (generatedVouchers.length === 0) return;
 
@@ -121,7 +164,7 @@ export default function VoucherGenerator() {
         <div class="barcode-card">
           <div class="barcode-title">${voucher.batchNo}</div>
           <img 
-            src="${voucher.barcodeImageUrl}" 
+            src="https://barcodeapi.org/api/code128/${voucher.barcode}" 
             alt="Barcode for ${voucher.batchNo}" 
             class="barcode-image"
           />
@@ -154,7 +197,7 @@ export default function VoucherGenerator() {
     onSubmit: async (values) => {
       try {
         // Check if products are available
-        if (products.length === 0) {
+        if (products.data.length === 0) {
           toast({
             title: "No Products Available",
             description: "Please add products before generating vouchers.",
@@ -167,33 +210,102 @@ export default function VoucherGenerator() {
         setGeneratedCount(0);
         setGeneratedVouchers([]);
 
-        // Call the backend API to generate vouchers
-        const response = await fetch("/api/vouchers/bulk-generation", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            prefix: values.prefix,
-            count: Number.parseInt(values.count, 10),
-            // We don't need to send product data as the backend will handle this
-          }),
-        });
+        // Generate vouchers
+        const vouchersToGenerate = Number.parseInt(values.count.toString(), 10);
+        let successCount = 0;
+        const newGeneratedVouchers = [];
 
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.error || "Failed to generate vouchers");
+        // Filter products with quantity > 0
+        let availableProducts = products?.data?.filter(
+          (product) => product.quantity > 0
+        );
+
+        if (availableProducts.length === 0) {
+          toast({
+            title: "No Products Available",
+            description: "There are no products with available quantity.",
+            variant: "destructive",
+          });
+          setIsGenerating(false);
+          return;
         }
 
-        const data = await response.json();
+        for (let i = 0; i < vouchersToGenerate; i++) {
+          try {
+            // Re-filter available products on each iteration
+            availableProducts = availableProducts.filter(
+              (product) => product.quantity > 0
+            );
 
-        // Update the UI with the generated vouchers
-        setGeneratedVouchers(data.vouchers);
-        setGeneratedCount(data.vouchers.length);
+            if (availableProducts.length === 0) {
+              toast({
+                title: "Product Quantity Depleted",
+                description: `Generated ${successCount} vouchers. All products are now out of stock.`,
+              });
+              break;
+            }
+
+            // Generate a random 8-digit number
+            const randomNum = Math.floor(10000000 + Math.random() * 90000000);
+            const batchNo = `${values.prefix}-${randomNum}`;
+
+            // Generate barcode for this batch number
+            const barcode = generateBarcode(batchNo);
+
+            // Randomly select a product with available quantity
+            const randomProductIndex = Math.floor(
+              Math.random() * availableProducts.length
+            );
+            const selectedProduct = availableProducts[randomProductIndex];
+
+            const now = new Date();
+            const formattedDate = now.toISOString();
+
+            // Create voucher in Firestore
+            await addDoc(collection(db, "vouchers"), {
+              batchNo,
+              status: "UNCLAIMED",
+              createdAt: Timestamp.now(),
+              productId: selectedProduct.id,
+              productName: selectedProduct.name,
+              barcode: barcode, // Store barcode in Firestore as well
+              barcodeImageUrl: `https://barcodeapi.org/api/code128/${barcode}`, // Also store the image URL
+            });
+
+            // Add to generated vouchers list for CSV export
+            newGeneratedVouchers.push({
+              batchNo,
+              productName: selectedProduct.name,
+              createdAt: formattedDate,
+              barcode: barcode,
+            });
+
+            // Update product quantity in Firestore
+            const productRef = doc(db, "products", selectedProduct.id);
+            await updateDoc(productRef, {
+              quantity: increment(-1), // Decrement quantity by 1
+            });
+
+            // Update local product quantity
+            availableProducts[randomProductIndex] = {
+              ...selectedProduct,
+              quantity: selectedProduct.quantity - 1,
+            };
+
+            successCount++;
+            setGeneratedCount(successCount);
+          } catch (error) {
+            console.error(`Error generating voucher ${i + 1}:`, error);
+            // Continue with the next voucher
+          }
+        }
+
+        // Save generated vouchers for CSV export
+        setGeneratedVouchers(newGeneratedVouchers);
 
         toast({
           title: "Success!",
-          description: `Generated ${data.vouchers.length} vouchers successfully.`,
+          description: `Generated ${successCount} vouchers successfully.`,
         });
       } catch (error) {
         console.error("Error generating vouchers:", error);
@@ -249,12 +361,14 @@ export default function VoucherGenerator() {
         <Button
           type="submit"
           className="w-full"
-          disabled={isGenerating || isLoadingProducts || products.length === 0}
+          disabled={
+            isGenerating || isLoadingProducts || products.data.length === 0
+          }
         >
           {isGenerating ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Generating...
+              Generating... ({generatedCount}/{formik.values.count})
             </>
           ) : (
             "Generate Vouchers"
@@ -279,7 +393,7 @@ export default function VoucherGenerator() {
                     prefix {formik.values.prefix}.
                   </p>
                 </div>
-                <div className="flex mt-4 space-x-2">
+                <div className="flex space-x-2">
                   <Button
                     variant="outline"
                     size="sm"
