@@ -1,22 +1,18 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, type ChangeEvent } from "react";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
-  useAddProductMutation,
-  useGetProductsQuery,
-} from "@/redux/features/products/productApi";
-import {
   Search,
-  Filter,
-  AlertCircle,
-  CheckCircle,
   ChevronLeft,
   ChevronRight,
+  Pencil,
+  Trash2,
+  AlertTriangle,
 } from "lucide-react";
 import {
   Select,
@@ -32,24 +28,130 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  useGetProductsQuery,
+  useAddProductMutation,
+  useUpdateProductMutation,
+  useDeleteProductMutation,
+} from "@/redux/features/products/productApi";
+
+// Define interfaces for our data structures
+interface Product {
+  id: string;
+  name: string;
+  quantity: number;
+  createdAt?: {
+    seconds: number;
+    nanoseconds: number;
+  };
+  updatedAt?: {
+    seconds: number;
+    nanoseconds: number;
+  };
+}
+
+interface Pagination {
+  page: number;
+  pageSize: number;
+  totalCount: number;
+  totalPages: number;
+}
+
+interface ProductsResponse {
+  data: Product[];
+  pagination: Pagination;
+}
+
+interface ProductFormValues {
+  name: string;
+  quantity: string;
+}
+
+// Update the QueryParams interface to include search
+interface QueryParams {
+  page: number;
+  pageSize: number;
+  search: string;
+  sortBy?: string;
+  sortOrder?: string;
+}
 
 export default function ProductsPage() {
   const { toast } = useToast();
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(5);
-  const [statusFilter, setStatusFilter] = useState("all");
+  const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState<boolean>(false);
+  const [productToDelete, setProductToDelete] = useState<Product | null>(null);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [itemsPerPage, setItemsPerPage] = useState<number>(10);
+  const [searchTerm, setSearchTerm] = useState<string>("");
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState<string>("");
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
 
-  // RTK Query hooks
-  const [addProduct, { isLoading: isAddingProduct }] = useAddProductMutation();
+  // Debounce search term
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
+  // Define query parameters
+  const queryParams: QueryParams = {
+    page: currentPage,
+    pageSize: itemsPerPage,
+    search: debouncedSearchTerm,
+  };
+
+  // Update the useGetProductsQuery hook to include search parameter
   const {
-    data: products = [],
+    data: productsData = {
+      data: [],
+      pagination: { page: 1, pageSize: 10, totalCount: 0, totalPages: 0 },
+    } as ProductsResponse,
     isLoading: isLoadingProducts,
     refetch,
-  } = useGetProductsQuery("");
+  } = useGetProductsQuery({
+    page: currentPage,
+    pageSize: itemsPerPage,
+    search: debouncedSearchTerm,
+    sortBy: "createdAt",
+    sortOrder: "desc",
+  });
+
+  const products = productsData.data || [];
+  const pagination = productsData.pagination || {
+    page: 1,
+    pageSize: 10,
+    totalCount: 0,
+    totalPages: 0,
+  };
+
+  const [addProduct, { isLoading: isAddingProduct }] = useAddProductMutation();
+  const [updateProduct, { isLoading: isUpdatingProduct }] =
+    useUpdateProductMutation();
+  const [deleteProduct, { isLoading: isDeletingProduct }] =
+    useDeleteProductMutation();
 
   // Form validation schema
   const formSchema = Yup.object().shape({
@@ -63,7 +165,7 @@ export default function ProductsPage() {
   });
 
   // Form setup
-  const formik = useFormik({
+  const formik = useFormik<ProductFormValues>({
     initialValues: {
       name: "",
       quantity: "",
@@ -74,155 +176,217 @@ export default function ProductsPage() {
         // Convert quantity to number
         const productData = {
           name: values.name,
-          quantity: Number.parseInt(values.quantity as string, 10),
-          createdAt: new Date(),
-          status: Math.random() > 0.5 ? "In Stock" : "Low Stock", // Random status for demo
+          quantity: Number.parseInt(values.quantity, 10),
         };
 
-        // Add product using RTK Query mutation
-        await addProduct(productData).unwrap();
+        if (editingProduct) {
+          // Update existing product
+          await updateProduct({
+            id: editingProduct.id,
+            ...productData,
+          }).unwrap();
 
-        // Show success message
-        toast({
-          title: "Success!",
-          description: "Product has been added successfully.",
-        });
+          toast({
+            title: "Success!",
+            description: "Product has been updated successfully.",
+          });
+        } else {
+          // Add new product
+          await addProduct(productData).unwrap();
 
-        // Reset form
+          toast({
+            title: "Success!",
+            description: "Product has been added successfully.",
+          });
+        }
+
+        // Reset form and state
         formik.resetForm();
-
-        // Close dialog
+        setEditingProduct(null);
         setIsDialogOpen(false);
 
         // Refetch products list
         refetch();
       } catch (error: any) {
-        console.error("Error adding product:", error);
+        console.error("Error with product:", error);
         toast({
           title: "Error",
-          description: `Failed to add product: ${
-            error.message || "Unknown error"
-          }`,
+          description: `Failed to ${
+            editingProduct ? "update" : "add"
+          } product: ${error.message || "Unknown error"}`,
           variant: "destructive",
         });
       }
     },
   });
 
-  // Filter products based on status
-  const filteredProducts =
-    statusFilter === "all"
-      ? products
-      : products.filter((product: any) => product.status === statusFilter);
+  // Handle edit button click
+  const handleEditProduct = (product: Product) => {
+    setEditingProduct(product);
+    formik.setValues({
+      name: product.name,
+      quantity: product.quantity.toString(),
+    });
+    setIsDialogOpen(true);
+  };
 
-  // Pagination
-  const indexOfLastItem = currentPage * itemsPerPage;
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentProducts = filteredProducts.slice(
-    indexOfFirstItem,
-    indexOfLastItem
-  );
-  const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
+  // Handle delete button click
+  // const handleDeleteClick = (product: Product) => {
+  //   setProductToDelete(product);
+  //   setIsDeleteDialogOpen(true);
+  // };
 
-  // Generate page numbers
-  const pageNumbers = [];
-  for (let i = 1; i <= totalPages; i++) {
-    pageNumbers.push(i);
-  }
+  // Handle confirm delete
+  // const handleConfirmDelete = async () => {
+  //   if (!productToDelete) return;
+
+  //   try {
+  //     await deleteProduct(productToDelete.id).unwrap();
+
+  //     toast({
+  //       title: "Success!",
+  //       description: "Product has been deleted successfully.",
+  //     });
+
+  //     // Close dialog and reset state
+  //     setIsDeleteDialogOpen(false);
+  //     setProductToDelete(null);
+
+  //     // If we deleted the last item on the current page, go to previous page
+  //     if (products.length === 1 && currentPage > 1) {
+  //       setCurrentPage(currentPage - 1);
+  //     } else {
+  //       // Refetch products list
+  //       refetch();
+  //     }
+  //   } catch (error: any) {
+  //     console.error("Error deleting product:", error);
+  //     toast({
+  //       title: "Error",
+  //       description: `Failed to delete product: ${
+  //         error.message || "Unknown error"
+  //       }`,
+  //       variant: "destructive",
+  //     });
+  //   }
+  // };
+
+  // Handle dialog close
+  const handleDialogOpenChange = (open: boolean) => {
+    if (!open) {
+      // Reset form when dialog is closed
+      formik.resetForm();
+      setEditingProduct(null);
+    }
+    setIsDialogOpen(open);
+  };
+
+  // Handle page size change
+  const handlePageSizeChange = (value: string) => {
+    const newPageSize = Number.parseInt(value, 10);
+    setItemsPerPage(newPageSize);
+    // Reset to first page when changing page size
+    setCurrentPage(1);
+  };
+
+  // Update the handleSearchChange function to be more explicit
+  const handleSearchChange = (e: ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(e.target.value);
+    // Reset to first page when searching
+    setCurrentPage(1);
+  };
+
+  // Calculate visible page numbers for pagination
+  const getVisiblePageNumbers = (): (number | string)[] => {
+    const maxVisiblePages = 5;
+    const pageNumbers: (number | string)[] = [];
+    const totalPages = pagination.totalPages || 1;
+
+    if (totalPages <= maxVisiblePages) {
+      // Show all pages if there are fewer than maxVisiblePages
+      for (let i = 1; i <= totalPages; i++) {
+        pageNumbers.push(i);
+      }
+    } else {
+      // Always show first page
+      pageNumbers.push(1);
+
+      // Calculate start and end of visible pages
+      let startPage = Math.max(
+        2,
+        currentPage - Math.floor(maxVisiblePages / 2)
+      );
+      const endPage = Math.min(totalPages - 1, startPage + maxVisiblePages - 3);
+
+      // Adjust if we're near the end
+      if (endPage - startPage < maxVisiblePages - 3) {
+        startPage = Math.max(2, totalPages - maxVisiblePages + 2);
+      }
+
+      // Add ellipsis after first page if needed
+      if (startPage > 2) {
+        pageNumbers.push("...");
+      }
+
+      // Add middle pages
+      for (let i = startPage; i <= endPage; i++) {
+        pageNumbers.push(i);
+      }
+
+      // Add ellipsis before last page if needed
+      if (endPage < totalPages - 1) {
+        pageNumbers.push("...");
+      }
+
+      // Always show last page if more than one page
+      if (totalPages > 1) {
+        pageNumbers.push(totalPages);
+      }
+    }
+
+    return pageNumbers;
+  };
 
   return (
-    <div className="container mx-auto mt-20 py-6 px-4">
+    <div className="container mx-auto py-6 px-4 mt-15">
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-2xl font-bold">Products</h1>
         <div className="flex gap-2">
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogTrigger asChild>
-              <Button>Add Product</Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Add New Product</DialogTitle>
-                <DialogDescription>
-                  Enter the product details below
-                </DialogDescription>
-              </DialogHeader>
-              <form onSubmit={formik.handleSubmit} className="space-y-4 py-4">
-                <div className="space-y-2">
-                  <Label htmlFor="name">Product Name</Label>
-                  <Input
-                    id="name"
-                    name="name"
-                    placeholder="Enter product name"
-                    value={formik.values.name}
-                    onChange={formik.handleChange}
-                    onBlur={formik.handleBlur}
-                  />
-                  {formik.touched.name && formik.errors.name && (
-                    <p className="text-sm text-red-500">{formik.errors.name}</p>
-                  )}
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="quantity">Quantity</Label>
-                  <Input
-                    id="quantity"
-                    name="quantity"
-                    type="number"
-                    placeholder="Enter quantity"
-                    value={formik.values.quantity}
-                    onChange={formik.handleChange}
-                    onBlur={formik.handleBlur}
-                  />
-                  {formik.touched.quantity && formik.errors.quantity && (
-                    <p className="text-sm text-red-500">
-                      {formik.errors.quantity}
-                    </p>
-                  )}
-                </div>
-
-                <DialogFooter>
-                  <Button type="submit" disabled={isAddingProduct}>
-                    {isAddingProduct ? "Adding..." : "Add Product"}
-                  </Button>
-                </DialogFooter>
-              </form>
-            </DialogContent>
-          </Dialog>
+          <Button
+            onClick={() => {
+              setEditingProduct(null);
+              formik.resetForm();
+              setIsDialogOpen(true);
+            }}
+          >
+            Add Product
+          </Button>
         </div>
       </div>
 
       <div className="bg-white rounded-lg border shadow-sm p-6">
-        <h2 className="text-xl font-semibold mb-4">Products</h2>
-
         <div className="flex flex-col md:flex-row gap-4 mb-6">
-          <div className="flex gap-2">
-            <div className="w-48">
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger>
-                  <div className="flex items-center">
-                    <Filter className="mr-2 h-4 w-4" />
-                    <SelectValue placeholder="All Statuses" />
-                  </div>
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Statuses</SelectItem>
-                  <SelectItem value="In Stock">In Stock</SelectItem>
-                  <SelectItem value="Low Stock">Low Stock</SelectItem>
-                  <SelectItem value="Out of Stock">Out of Stock</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+            {/* Update the search input to use the handleSearchChange function */}
+            <Input
+              placeholder="Search products..."
+              className="pl-10"
+              value={searchTerm}
+              onChange={handleSearchChange}
+              aria-label="Search products"
+            />
+          </div>
 
+          {/* <div className="flex gap-2 flex-wrap">
             <div className="w-40">
               <Select
                 value={itemsPerPage.toString()}
-                onValueChange={(value) =>
-                  setItemsPerPage(Number.parseInt(value))
-                }
+                onValueChange={handlePageSizeChange}
               >
                 <SelectTrigger>
                   <div className="flex items-center">
-                    <SelectValue placeholder="5 per page" />
+                    <SelectValue placeholder="10 per page" />
                   </div>
                 </SelectTrigger>
                 <SelectContent>
@@ -233,96 +397,83 @@ export default function ProductsPage() {
                 </SelectContent>
               </Select>
             </div>
-          </div>
+          </div> */}
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b">
-                <th className="text-left py-3 px-4 font-medium">Product ID</th>
-                <th className="text-left py-3 px-4 font-medium">
-                  Product Name
-                </th>
-                <th className="text-left py-3 px-4 font-medium">Quantity</th>
-                <th className="text-left py-3 px-4 font-medium">Status</th>
-                <th className="text-left py-3 px-4 font-medium">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
+        <div className="overflow-x-auto border rounded-sm">
+          <Table>
+            <TableHeader>
+              <TableRow className="bg-gray-200">
+                <TableHead>Product ID</TableHead>
+                <TableHead>Product Name</TableHead>
+                <TableHead>Quantity</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {isLoadingProducts ? (
-                <tr>
-                  <td colSpan={5} className="text-center py-8">
+                <TableRow>
+                  <TableCell colSpan={4} className="text-center py-8">
                     <div className="flex justify-center items-center">
                       <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
                     </div>
-                  </td>
-                </tr>
-              ) : currentProducts.length > 0 ? (
-                currentProducts.map((product: any, index: any) => (
-                  <tr key={product.id} className="border-b">
-                    <td className="py-4 px-4 text-sm">
+                  </TableCell>
+                </TableRow>
+              ) : products.length > 0 ? (
+                products.map((product: any) => (
+                  <TableRow key={product.id}>
+                    <TableCell className="font-medium">
                       {product.id.substring(0, 12)}...
-                    </td>
-                    <td className="py-4 px-4">{product.name}</td>
-                    <td className="py-4 px-4">{product.quantity}</td>
-                    <td className="py-4 px-4">
-                      {product.status === "In Stock" ? (
-                        <div className="flex items-center">
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                            <CheckCircle className="mr-1 h-3 w-3" />
-                            In Stock
-                          </span>
-                        </div>
-                      ) : (
-                        <div className="flex items-center">
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                            <AlertCircle className="mr-1 h-3 w-3" />
-                            Low Stock
-                          </span>
-                        </div>
-                      )}
-                    </td>
-                    <td className="py-4 px-4">
-                      <Select>
-                        <SelectTrigger className="w-[180px]">
-                          <SelectValue placeholder="Change Status" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="in-stock">
-                            Set as In Stock
-                          </SelectItem>
-                          <SelectItem value="low-stock">
-                            Set as Low Stock
-                          </SelectItem>
-                          <SelectItem value="out-of-stock">
-                            Set as Out of Stock
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </td>
-                  </tr>
+                    </TableCell>
+                    <TableCell>{product.name}</TableCell>
+                    <TableCell>{product.quantity}</TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleEditProduct(product)}
+                        >
+                          <Pencil className="h-4 w-4 " />
+                          Edit
+                        </Button>
+                        {/* <Button
+                          size="sm"
+                          onClick={() => handleDeleteClick(product)}
+                        >
+                          <Trash2 className="h-4 w-4 " />
+                          Delete
+                        </Button> */}
+                      </div>
+                    </TableCell>
+                  </TableRow>
                 ))
               ) : (
-                <tr>
-                  <td colSpan={5} className="text-center py-8 text-gray-500">
+                <TableRow>
+                  <TableCell
+                    colSpan={4}
+                    className="text-center py-8 text-gray-500"
+                  >
                     No products found
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               )}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         </div>
 
-        {filteredProducts.length > 0 && (
+        {pagination.totalCount > 0 && (
           <div className="mt-4 flex flex-col sm:flex-row justify-between items-center text-sm text-gray-500">
-            <div>
-              Showing {indexOfFirstItem + 1}-
-              {Math.min(indexOfLastItem, filteredProducts.length)} of{" "}
-              {filteredProducts.length} products
+            <div className="mb-4 sm:mb-0">
+              Showing {(pagination.page - 1) * pagination.pageSize + 1}-
+              {Math.min(
+                pagination.page * pagination.pageSize,
+                pagination.totalCount
+              )}{" "}
+              of {pagination.totalCount} products
             </div>
 
-            <div className="flex items-center space-x-2 mt-4 sm:mt-0">
+            <div className="flex items-center flex-wrap justify-center gap-1">
               <button
                 onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
                 disabled={currentPage === 1}
@@ -331,25 +482,37 @@ export default function ProductsPage() {
                 <ChevronLeft className="h-5 w-5" />
               </button>
 
-              {pageNumbers.map((number) => (
-                <button
-                  key={number}
-                  onClick={() => setCurrentPage(number)}
-                  className={`px-3 py-1 rounded-md ${
-                    currentPage === number
-                      ? "bg-primary text-white"
-                      : "hover:bg-gray-100"
-                  }`}
-                >
-                  {number}
-                </button>
-              ))}
+              <div className="flex flex-wrap justify-center gap-1 max-w-[300px]">
+                {getVisiblePageNumbers().map((number, index) =>
+                  number === "..." ? (
+                    <span key={`ellipsis-${index}`} className="px-2 py-1">
+                      ...
+                    </span>
+                  ) : (
+                    <button
+                      key={`page-${number}`}
+                      onClick={() =>
+                        typeof number === "number" && setCurrentPage(number)
+                      }
+                      className={`px-3 py-1 rounded-md ${
+                        currentPage === number
+                          ? "bg-primary text-white"
+                          : "hover:bg-gray-100"
+                      }`}
+                    >
+                      {number}
+                    </button>
+                  )
+                )}
+              </div>
 
               <button
                 onClick={() =>
-                  setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                  setCurrentPage((prev) =>
+                    Math.min(prev + 1, pagination.totalPages)
+                  )
                 }
-                disabled={currentPage === totalPages}
+                disabled={currentPage === pagination.totalPages}
                 className="p-1 rounded-md hover:bg-gray-100 disabled:opacity-50"
               >
                 <ChevronRight className="h-5 w-5" />
@@ -358,6 +521,100 @@ export default function ProductsPage() {
           </div>
         )}
       </div>
+
+      {/* Product Form Dialog */}
+      <Dialog open={isDialogOpen} onOpenChange={handleDialogOpenChange}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {editingProduct ? "Update Product" : "Add New Product"}
+            </DialogTitle>
+            <DialogDescription>
+              {editingProduct
+                ? "Update the product details below"
+                : "Enter the product details below"}
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={formik.handleSubmit} className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="name">Product Name</Label>
+              <Input
+                id="name"
+                name="name"
+                placeholder="Enter product name"
+                value={formik.values.name}
+                onChange={formik.handleChange}
+                onBlur={formik.handleBlur}
+              />
+              {formik.touched.name && formik.errors.name && (
+                <p className="text-sm text-red-500">{formik.errors.name}</p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="quantity">Quantity</Label>
+              <Input
+                id="quantity"
+                name="quantity"
+                type="number"
+                placeholder="Enter quantity"
+                value={formik.values.quantity}
+                onChange={formik.handleChange}
+                onBlur={formik.handleBlur}
+              />
+              {formik.touched.quantity && formik.errors.quantity && (
+                <p className="text-sm text-red-500">{formik.errors.quantity}</p>
+              )}
+            </div>
+
+            <DialogFooter>
+              <Button
+                type="submit"
+                disabled={isAddingProduct || isUpdatingProduct}
+              >
+                {isAddingProduct || isUpdatingProduct
+                  ? editingProduct
+                    ? "Updating..."
+                    : "Adding..."
+                  : editingProduct
+                  ? "Update Product"
+                  : "Add Product"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      {/* <AlertDialog
+        open={isDeleteDialogOpen}
+        onOpenChange={setIsDeleteDialogOpen}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-destructive" />
+              Confirm Deletion
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete the product "
+              {productToDelete?.name}"? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeletingProduct}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmDelete}
+              disabled={isDeletingProduct}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isDeletingProduct ? "Deleting..." : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog> */}
     </div>
   );
 }
