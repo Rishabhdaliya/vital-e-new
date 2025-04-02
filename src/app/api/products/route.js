@@ -7,24 +7,66 @@ import {
   query,
   orderBy,
   Timestamp,
+  doc,
+  updateDoc,
+  getDoc,
 } from "firebase/firestore";
 
-// GET handler to fetch all products
-export async function GET() {
+// GET handler to fetch products with pagination
+export async function GET(request) {
   try {
-    const productsRef = collection(db, "products");
-    const q = query(productsRef, orderBy("createdAt", "desc"));
-    const querySnapshot = await getDocs(q);
+    const { searchParams } = new URL(request.url);
+    const page = Number.parseInt(searchParams.get("page") || "1", 10);
+    const pageSize = Number.parseInt(searchParams.get("pageSize") || "10", 10);
+    const sortBy = searchParams.get("sortBy") || "createdAt";
+    const sortOrder = searchParams.get("sortOrder") || "desc";
+    const search = searchParams.get("search") || "";
 
-    const products = [];
-    querySnapshot.forEach((doc) => {
-      products.push({
-        id: doc.id,
-        ...doc.data(),
-      });
+    // Validate pagination parameters
+    if (page < 1 || pageSize < 1 || pageSize > 100) {
+      return NextResponse.json(
+        { error: "Invalid pagination parameters" },
+        { status: 400 }
+      );
+    }
+
+    const productsRef = collection(db, "products");
+
+    // Build the base query
+    const baseQuery = query(productsRef, orderBy(sortBy, sortOrder));
+
+    // Get all products for search filtering (Firestore doesn't support text search natively)
+    const allProductsSnapshot = await getDocs(baseQuery);
+
+    // Filter products by search term if provided
+    const filteredProducts = [];
+    allProductsSnapshot.forEach((doc) => {
+      const product = { id: doc.id, ...doc.data() };
+      if (
+        !search ||
+        product.name.toLowerCase().includes(search.toLowerCase())
+      ) {
+        filteredProducts.push(product);
+      }
     });
 
-    return NextResponse.json(products);
+    // Get total count after filtering
+    const totalCount = filteredProducts.length;
+
+    // Apply pagination to filtered results
+    const startIndex = (page - 1) * pageSize;
+    const endIndex = startIndex + pageSize;
+    const paginatedProducts = filteredProducts.slice(startIndex, endIndex);
+
+    return NextResponse.json({
+      data: paginatedProducts,
+      pagination: {
+        page,
+        pageSize,
+        totalCount,
+        totalPages: Math.ceil(totalCount / pageSize),
+      },
+    });
   } catch (error) {
     console.error("Error fetching products:", error);
     return NextResponse.json(
@@ -66,6 +108,59 @@ export async function POST(request) {
     console.error("Error adding product:", error);
     return NextResponse.json(
       { error: "Failed to add product" },
+      { status: 500 }
+    );
+  }
+}
+
+// PUT handler to update an existing product
+export async function PUT(request) {
+  try {
+    const body = await request.json();
+    const { id, name, quantity } = body;
+
+    // Validate request body
+    if (!id) {
+      return NextResponse.json(
+        { error: "Product ID is required" },
+        { status: 400 }
+      );
+    }
+
+    if (!name || quantity === undefined) {
+      return NextResponse.json(
+        { error: "Product name and quantity are required" },
+        { status: 400 }
+      );
+    }
+
+    // Check if product exists
+    const productRef = doc(db, "products", id);
+    const productSnap = await getDoc(productRef);
+
+    if (!productSnap.exists()) {
+      return NextResponse.json({ error: "Product not found" }, { status: 404 });
+    }
+
+    // Prepare update data
+    const updateData = {
+      name,
+      quantity: Number(quantity),
+      updatedAt: Timestamp.now(),
+    };
+
+    // Update in Firestore
+    await updateDoc(productRef, updateData);
+
+    return NextResponse.json({
+      id,
+      ...updateData,
+      message: "Product updated successfully",
+    });
+  } catch (error) {
+    console.error("Error updating product:", error);
+    return NextResponse.json(
+      { error: "Failed to update product" },
       { status: 500 }
     );
   }

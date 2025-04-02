@@ -1,8 +1,6 @@
 "use client";
 
-import type React from "react";
-
-import { useState, useCallback } from "react";
+import { useState, useCallback, type ChangeEvent } from "react";
 import {
   Table,
   TableBody,
@@ -25,18 +23,36 @@ import {
   ChevronLeft,
   ChevronRight,
   Search,
+  Clock,
 } from "lucide-react";
-import type { Voucher } from "@/components/types/schema";
+import { doc, updateDoc } from "firebase/firestore";
+import { db } from "@/lib/firebase/config";
+import { useToast } from "@/hooks/use-toast";
+
+// Define the Voucher interface
+interface Voucher {
+  id: string;
+  batchNo?: string;
+  createdAt?: {
+    seconds: number;
+    nanoseconds: number;
+  };
+  productName?: string;
+  status?: "CLAIMED" | "UNCLAIMED" | "EXPIRED";
+  barcodeImageUrl?: string;
+  barcode?: string;
+}
 
 interface VoucherTableProps {
-  vouchers: any[];
+  vouchers: Voucher[];
 }
 
 export default function VoucherTable({ vouchers = [] }: VoucherTableProps) {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(5);
+  const [searchTerm, setSearchTerm] = useState<string>("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [itemsPerPage, setItemsPerPage] = useState<number>(5);
+  const { toast } = useToast();
 
   // Memoized filter function to improve performance
   const getFilteredVouchers = useCallback(() => {
@@ -59,7 +75,8 @@ export default function VoucherTable({ vouchers = [] }: VoucherTableProps) {
       const matchesStatus =
         statusFilter === "all" ||
         (statusFilter === "claimed" && status === "CLAIMED") ||
-        (statusFilter === "unclaimed" && status === "UNCLAIMED");
+        (statusFilter === "unclaimed" && status === "UNCLAIMED") ||
+        (statusFilter === "expired" && status === "EXPIRED");
 
       return matchesSearch && matchesStatus;
     });
@@ -74,7 +91,7 @@ export default function VoucherTable({ vouchers = [] }: VoucherTableProps) {
     setCurrentPage(1);
   };
 
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleSearchChange = (e: ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
     setCurrentPage(1);
   };
@@ -82,6 +99,32 @@ export default function VoucherTable({ vouchers = [] }: VoucherTableProps) {
   const handleItemsPerPageChange = (value: string) => {
     setItemsPerPage(Number(value));
     setCurrentPage(1);
+  };
+
+  // Handle status change
+  const handleStatusChange = async (voucherId: string, newStatus: string) => {
+    try {
+      const voucherRef = doc(db, "vouchers", voucherId);
+      await updateDoc(voucherRef, {
+        status: newStatus,
+        updatedAt: new Date(),
+      });
+
+      toast({
+        title: "Status Updated",
+        description: `Voucher status has been updated to ${newStatus}`,
+      });
+
+      // Force re-render
+      setStatusFilter(statusFilter);
+    } catch (error) {
+      console.error("Error updating voucher status:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update voucher status",
+        variant: "destructive",
+      });
+    }
   };
 
   // Pagination
@@ -96,14 +139,8 @@ export default function VoucherTable({ vouchers = [] }: VoucherTableProps) {
     Math.ceil(filteredVouchers.length / itemsPerPage)
   );
 
-  // Generate page numbers
-  const pageNumbers = [];
-  for (let i = 1; i <= totalPages; i++) {
-    pageNumbers.push(i);
-  }
-
   // Format date safely
-  const formatDate = (seconds: number) => {
+  const formatDate = (seconds: number): string => {
     try {
       return new Date(seconds * 1000).toLocaleDateString();
     } catch (error) {
@@ -111,10 +148,56 @@ export default function VoucherTable({ vouchers = [] }: VoucherTableProps) {
     }
   };
 
+  // Calculate visible page numbers for pagination
+  const getVisiblePageNumbers = (): (number | string)[] => {
+    const maxVisiblePages = 5;
+    const pageNumbers: (number | string)[] = [];
+
+    if (totalPages <= maxVisiblePages) {
+      // Show all pages if there are fewer than maxVisiblePages
+      for (let i = 1; i <= totalPages; i++) {
+        pageNumbers.push(i);
+      }
+    } else {
+      // Always show first page
+      pageNumbers.push(1);
+
+      // Calculate start and end of visible pages
+      let startPage = Math.max(
+        2,
+        currentPage - Math.floor(maxVisiblePages / 2)
+      );
+      const endPage = Math.min(totalPages - 1, startPage + maxVisiblePages - 3);
+
+      // Adjust if we're near the end
+      if (endPage - startPage < maxVisiblePages - 3) {
+        startPage = Math.max(2, totalPages - maxVisiblePages + 2);
+      }
+
+      // Add ellipsis after first page if needed
+      if (startPage > 2) {
+        pageNumbers.push("...");
+      }
+
+      // Add middle pages
+      for (let i = startPage; i <= endPage; i++) {
+        pageNumbers.push(i);
+      }
+
+      // Add ellipsis before last page if needed
+      if (endPage < totalPages - 1) {
+        pageNumbers.push("...");
+      }
+
+      // Always show last page
+      pageNumbers.push(totalPages);
+    }
+
+    return pageNumbers;
+  };
+
   return (
     <div className="bg-white rounded-lg border shadow-sm p-6">
-      <h2 className="text-xl font-semibold mb-4">Vouchers</h2>
-
       <div className="flex flex-col md:flex-row gap-4 mb-6">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
@@ -126,7 +209,7 @@ export default function VoucherTable({ vouchers = [] }: VoucherTableProps) {
           />
         </div>
 
-        <div className="flex gap-2">
+        <div className="flex gap-2  flex-wrap">
           <div className="w-48">
             <Select value={statusFilter} onValueChange={handleFilterChange}>
               <SelectTrigger>
@@ -138,11 +221,12 @@ export default function VoucherTable({ vouchers = [] }: VoucherTableProps) {
                 <SelectItem value="all">All Statuses</SelectItem>
                 <SelectItem value="claimed">Claimed</SelectItem>
                 <SelectItem value="unclaimed">Not Claimed</SelectItem>
+                <SelectItem value="expired">Expired</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
-          <div className="w-40">
+          <div className="w-40 ">
             <Select
               value={itemsPerPage.toString()}
               onValueChange={handleItemsPerPageChange}
@@ -163,14 +247,15 @@ export default function VoucherTable({ vouchers = [] }: VoucherTableProps) {
         </div>
       </div>
 
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto border rounded-sm">
         <Table>
           <TableHeader>
-            <TableRow>
+            <TableRow className="bg-gray-200 ">
               <TableHead>Voucher ID</TableHead>
               <TableHead>Batch NO</TableHead>
               <TableHead>Date of Issue</TableHead>
               <TableHead>Product</TableHead>
+              <TableHead>Barcode</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Actions</TableHead>
             </TableRow>
@@ -192,11 +277,31 @@ export default function VoucherTable({ vouchers = [] }: VoucherTableProps) {
                     {voucher.productName || "No product assigned"}
                   </TableCell>
                   <TableCell>
+                    {voucher.barcodeImageUrl ? (
+                      <div className="w-32 h-12 relative">
+                        <img
+                          src={voucher.barcodeImageUrl || "/placeholder.svg"}
+                          alt={`Barcode for ${voucher.batchNo}`}
+                          className="object-contain w-full h-full"
+                        />
+                      </div>
+                    ) : (
+                      <span className="text-xs text-gray-500">No barcode</span>
+                    )}
+                  </TableCell>
+                  <TableCell>
                     {voucher.status === "CLAIMED" ? (
                       <div className="flex items-center">
                         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
                           <CheckCircle className="mr-1 h-3 w-3" />
                           Claimed
+                        </span>
+                      </div>
+                    ) : voucher.status === "EXPIRED" ? (
+                      <div className="flex items-center">
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                          <Clock className="mr-1 h-3 w-3" />
+                          Expired
                         </span>
                       </div>
                     ) : (
@@ -209,24 +314,35 @@ export default function VoucherTable({ vouchers = [] }: VoucherTableProps) {
                     )}
                   </TableCell>
                   <TableCell>
-                    <Select>
-                      <SelectTrigger className="w-[180px]">
-                        <SelectValue placeholder="Change Status" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="claimed">Set as Claimed</SelectItem>
-                        <SelectItem value="unclaimed">
-                          Set as Not Claimed
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
+                    {voucher.status === "CLAIMED" ? (
+                      <Select
+                        onValueChange={(value) =>
+                          handleStatusChange(voucher.id, value)
+                        }
+                      >
+                        <SelectTrigger className="w-[180px]">
+                          <SelectValue placeholder="Change Status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="EXPIRED">
+                            Set as Expired
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <span className="text-xs text-gray-500">
+                        {voucher.status === "EXPIRED"
+                          ? "No actions available"
+                          : "Must be claimed first"}
+                      </span>
+                    )}
                   </TableCell>
                 </TableRow>
               ))
             ) : (
               <TableRow>
                 <TableCell
-                  colSpan={6}
+                  colSpan={7}
                   className="text-center py-8 text-gray-500"
                 >
                   No vouchers found
@@ -239,13 +355,13 @@ export default function VoucherTable({ vouchers = [] }: VoucherTableProps) {
 
       {filteredVouchers.length > 0 && (
         <div className="mt-4 flex flex-col sm:flex-row justify-between items-center text-sm text-gray-500">
-          <div>
+          <div className="mb-4 sm:mb-0">
             Showing {indexOfFirstItem + 1}-
             {Math.min(indexOfLastItem, filteredVouchers.length)} of{" "}
             {filteredVouchers.length} vouchers
           </div>
 
-          <div className="flex items-center space-x-2 mt-4 sm:mt-0">
+          <div className="flex items-center flex-wrap justify-center gap-1">
             <button
               onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
               disabled={currentPage === 1}
@@ -254,19 +370,29 @@ export default function VoucherTable({ vouchers = [] }: VoucherTableProps) {
               <ChevronLeft className="h-5 w-5" />
             </button>
 
-            {pageNumbers.map((number) => (
-              <button
-                key={number}
-                onClick={() => setCurrentPage(number)}
-                className={`px-3 py-1 rounded-md ${
-                  currentPage === number
-                    ? "bg-primary text-white"
-                    : "hover:bg-gray-100"
-                }`}
-              >
-                {number}
-              </button>
-            ))}
+            <div className="flex flex-wrap justify-center gap-1 max-w-[300px]">
+              {getVisiblePageNumbers().map((number, index) =>
+                number === "..." ? (
+                  <span key={`ellipsis-${index}`} className="px-2 py-1">
+                    ...
+                  </span>
+                ) : (
+                  <button
+                    key={`page-${number}`}
+                    onClick={() =>
+                      typeof number === "number" && setCurrentPage(number)
+                    }
+                    className={`px-3 py-1 rounded-md ${
+                      currentPage === number
+                        ? "bg-primary text-white"
+                        : "hover:bg-gray-100"
+                    }`}
+                  >
+                    {number}
+                  </button>
+                )
+              )}
+            </div>
 
             <button
               onClick={() =>
