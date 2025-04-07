@@ -197,7 +197,7 @@ export default function VoucherTable({ vouchers = [] }: VoucherTableProps) {
   };
 
   return (
-    <div className="bg-white rounded-lg border shadow-sm p-6">
+    <>
       <div className="flex flex-col md:flex-row gap-4 mb-6">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
@@ -247,11 +247,10 @@ export default function VoucherTable({ vouchers = [] }: VoucherTableProps) {
         </div>
       </div>
 
-      <div className="overflow-x-auto border rounded-sm">
+      <div className="overflow-x-auto ">
         <Table>
           <TableHeader>
-            <TableRow className="bg-gray-200 ">
-              <TableHead>Voucher ID</TableHead>
+            <TableRow>
               <TableHead>Batch NO</TableHead>
               <TableHead>Date of Issue</TableHead>
               <TableHead>Product</TableHead>
@@ -264,9 +263,6 @@ export default function VoucherTable({ vouchers = [] }: VoucherTableProps) {
             {currentVouchers.length > 0 ? (
               currentVouchers.map((voucher) => (
                 <TableRow key={voucher.id}>
-                  <TableCell className="font-medium">
-                    {voucher.id?.substring(0, 12) || ""}...
-                  </TableCell>
                   <TableCell>{voucher.batchNo || ""}</TableCell>
                   <TableCell>
                     {voucher.createdAt?.seconds
@@ -276,9 +272,9 @@ export default function VoucherTable({ vouchers = [] }: VoucherTableProps) {
                   <TableCell>
                     {voucher.productName || "No product assigned"}
                   </TableCell>
-                  <TableCell>
+                  <TableCell align="center">
                     {voucher.barcodeImageUrl ? (
-                      <div className="w-32 h-12 relative">
+                      <div className="w-full h-14 ">
                         <img
                           src={voucher.barcodeImageUrl || "/placeholder.svg"}
                           alt={`Barcode for ${voucher.batchNo}`}
@@ -291,21 +287,21 @@ export default function VoucherTable({ vouchers = [] }: VoucherTableProps) {
                   </TableCell>
                   <TableCell>
                     {voucher.status === "CLAIMED" ? (
-                      <div className="flex items-center">
+                      <div className="flex justify-center items-center">
                         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
                           <CheckCircle className="mr-1 h-3 w-3" />
                           Claimed
                         </span>
                       </div>
                     ) : voucher.status === "EXPIRED" ? (
-                      <div className="flex items-center">
+                      <div className="flex justify-center items-center">
                         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
                           <Clock className="mr-1 h-3 w-3" />
                           Expired
                         </span>
                       </div>
                     ) : (
-                      <div className="flex items-center">
+                      <div className="flex justify-center items-center">
                         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
                           <AlertCircle className="mr-1 h-3 w-3" />
                           Not Claimed
@@ -313,17 +309,17 @@ export default function VoucherTable({ vouchers = [] }: VoucherTableProps) {
                       </div>
                     )}
                   </TableCell>
-                  <TableCell>
+                  <TableCell align="center">
                     {voucher.status === "CLAIMED" ? (
                       <Select
                         onValueChange={(value) =>
                           handleStatusChange(voucher.id, value)
                         }
                       >
-                        <SelectTrigger className="w-[180px]">
+                        <SelectTrigger className="w-[180px] mx-auto bg-white">
                           <SelectValue placeholder="Change Status" />
                         </SelectTrigger>
-                        <SelectContent>
+                        <SelectContent className=" bg-white">
                           <SelectItem value="EXPIRED">
                             Set as Expired
                           </SelectItem>
@@ -384,7 +380,7 @@ export default function VoucherTable({ vouchers = [] }: VoucherTableProps) {
                     }
                     className={`px-3 py-1 rounded-md ${
                       currentPage === number
-                        ? "bg-primary text-white"
+                        ? "text-black bg-gray-100"
                         : "hover:bg-gray-100"
                     }`}
                   >
@@ -406,6 +402,6 @@ export default function VoucherTable({ vouchers = [] }: VoucherTableProps) {
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 }

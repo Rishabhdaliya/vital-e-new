@@ -353,6 +353,7 @@ export default function ProductsPage() {
         <h1 className="text-2xl font-bold">Products</h1>
         <div className="flex gap-2">
           <Button
+            className="w-full bg-[#f04d46] cursor-pointer text-white"
             onClick={() => {
               setEditingProduct(null);
               formik.resetForm();
@@ -364,7 +365,7 @@ export default function ProductsPage() {
         </div>
       </div>
 
-      <div className="bg-white rounded-lg border shadow-sm p-6">
+      <>
         <div className="flex flex-col md:flex-row gap-4 mb-6">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
@@ -377,37 +378,15 @@ export default function ProductsPage() {
               aria-label="Search products"
             />
           </div>
-
-          {/* <div className="flex gap-2 flex-wrap">
-            <div className="w-40">
-              <Select
-                value={itemsPerPage.toString()}
-                onValueChange={handlePageSizeChange}
-              >
-                <SelectTrigger>
-                  <div className="flex items-center">
-                    <SelectValue placeholder="10 per page" />
-                  </div>
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="5">5 per page</SelectItem>
-                  <SelectItem value="10">10 per page</SelectItem>
-                  <SelectItem value="20">20 per page</SelectItem>
-                  <SelectItem value="50">50 per page</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div> */}
         </div>
 
-        <div className="overflow-x-auto border rounded-sm">
+        <div className="overflow-x-auto ">
           <Table>
             <TableHeader>
-              <TableRow className="bg-gray-200">
-                <TableHead>Product ID</TableHead>
+              <TableRow>
                 <TableHead>Product Name</TableHead>
                 <TableHead>Quantity</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -422,13 +401,10 @@ export default function ProductsPage() {
               ) : products.length > 0 ? (
                 products.map((product: any) => (
                   <TableRow key={product.id}>
-                    <TableCell className="font-medium">
-                      {product.id.substring(0, 12)}...
-                    </TableCell>
                     <TableCell>{product.name}</TableCell>
                     <TableCell>{product.quantity}</TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
+                    <TableCell align="center">
+                      <div className="flex justify-center gap-2">
                         <Button
                           variant="outline"
                           size="sm"
@@ -496,7 +472,7 @@ export default function ProductsPage() {
                       }
                       className={`px-3 py-1 rounded-md ${
                         currentPage === number
-                          ? "bg-primary text-white"
+                          ? "text-black bg-gray-100"
                           : "hover:bg-gray-100"
                       }`}
                     >
@@ -520,11 +496,11 @@ export default function ProductsPage() {
             </div>
           </div>
         )}
-      </div>
+      </>
 
       {/* Product Form Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={handleDialogOpenChange}>
-        <DialogContent>
+        <DialogContent className="bg-white ">
           <DialogHeader>
             <DialogTitle>
               {editingProduct ? "Update Product" : "Add New Product"}
@@ -569,6 +545,7 @@ export default function ProductsPage() {
 
             <DialogFooter>
               <Button
+                className="w-full bg-[#f04d46] cursor-pointer text-white"
                 type="submit"
                 disabled={isAddingProduct || isUpdatingProduct}
               >

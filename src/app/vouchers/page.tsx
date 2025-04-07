@@ -26,7 +26,7 @@ function BulkUploadDialog() {
       <DialogTrigger asChild>
         <Button variant="outline">Bulk Upload Voucher</Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="bg-white sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Bulk Upload Voucher</DialogTitle>
         </DialogHeader>
@@ -56,7 +56,7 @@ export default function VouchersPage() {
   return (
     <div className="container mx-auto mt-20 py-6 px-4">
       <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Vouchers</h1>
+        <h1 className="text-[#f04d46] text-2xl font-bold">Vouchers</h1>
         <BulkUploadDialog />
       </div>
       <Suspense fallback={<TableSkeleton />}>

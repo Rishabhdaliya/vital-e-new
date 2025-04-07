@@ -58,6 +58,7 @@ const config = {
       },
       fontFamily: {
         sans: ["var(--font-sans)", "Inter", "system-ui", "sans-serif"],
+        chewy: ["Chewy", "cursive"],
       },
       keyframes: {
         "accordion-down": {

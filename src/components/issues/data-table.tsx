@@ -78,7 +78,7 @@ export function DataTable<TData, TValue>({
   return (
     <div className="space-y-4">
       <DataTableToolbar table={table} />
-      <div className="rounded-md border">
+      <>
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
@@ -98,14 +98,14 @@ export function DataTable<TData, TValue>({
           </TableHeader>
           <TableBody>
             {isLoading ? (
-              Array.from({ length: 7 }).map((_, idx) => (
+              Array.from({ length: 10 }).map((_, idx) => (
                 <TableRow key={idx} className="skeleton-row">
                   {table
                     .getAllColumns()
                     .filter((column) => column.getIsVisible())
                     .map((visibleColumn) => (
                       <TableCell key={visibleColumn.id}>
-                        <Skeleton className="h-4 w-full" />
+                        <Skeleton className="h-4 bg-gray-200 w-full" />
                       </TableCell>
                     ))}
                 </TableRow>
@@ -138,7 +138,7 @@ export function DataTable<TData, TValue>({
             )}
           </TableBody>
         </Table>
-      </div>
+      </>
       <DataTablePagination table={table} />
     </div>
   );

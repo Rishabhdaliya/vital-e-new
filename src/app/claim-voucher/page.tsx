@@ -84,7 +84,7 @@ export default function ClaimVoucher() {
   });
 
   return (
-    <div className="container max-w-md mt-10 mx-auto py-10">
+    <div className="container max-w-md h-[100vh] flex justify-center items-center mx-auto py-10">
       {success ? (
         <Card className="overflow-hidden">
           <div className="bg-gradient-to-r from-blue-500 to-purple-600 p-6 text-white relative overflow-hidden">
@@ -182,7 +182,7 @@ export default function ClaimVoucher() {
 
           <CardFooter>
             <Button
-              className="w-full animate-pulse-slow"
+              className="w-full bg-[#f04d46] cursor-pointer text-white animate-pulse-slow"
               onClick={() => {
                 setSuccess(false);
                 setClaimedProduct(null);
@@ -237,7 +237,11 @@ export default function ClaimVoucher() {
                 )}
               </div>
 
-              <Button type="submit" className="w-full" disabled={isLoading}>
+              <Button
+                className="w-full bg-[#f04d46] cursor-pointer text-white"
+                type="submit"
+                disabled={isLoading}
+              >
                 {isLoading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
