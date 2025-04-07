@@ -25,7 +25,7 @@ export default function Customer() {
     }
   };
   return (
-    <div className="flex justify-center items-center h-[calc(100vh)] bg-gray-100">
+    <div className="flex justify-center items-center h-[calc(100vh)]">
       <RegistrationForm
         role="CUSTOMER"
         handleRegistrationForm={handleRegistrationForm}

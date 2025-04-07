@@ -46,7 +46,7 @@ export function RegistrationForm({
     >
       <Card>
         <CardHeader>
-          <CardTitle className="text-xl text-black text-center">
+          <CardTitle className="text-xl text-primary-DEFAULT text-center">
             {heading}
           </CardTitle>
           <CardDescription className="text-center">

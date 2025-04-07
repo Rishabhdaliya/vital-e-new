@@ -5,12 +5,16 @@ import {
   DisclosurePanel,
   Menu,
   MenuButton,
-  MenuItem,
   MenuItems,
+  MenuItem,
 } from "@headlessui/react";
-import { Bars3Icon, BellIcon, XMarkIcon } from "@heroicons/react/24/outline";
+import { Bars3Icon, XMarkIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useTheme } from "next-themes";
+import { MoonIcon, SunIcon } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useEffect, useState } from "react";
 
 // Dynamic navigation links data
 const navigation = [
@@ -30,13 +34,18 @@ function classNames(...classes: string[]) {
 
 export default function Navbar() {
   const pathname = usePathname();
+  const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  // After mounting, we can safely show the theme toggle
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   return (
     <Disclosure
       as="nav"
-      className="w-full fixed top-0 left-0 right-0 z-50 transition-all duration-300 bg-white border-b border-gray-200 "
-
-      //   className="bg-white fixed w-full border-b border-gray-300 "
+      className="w-full fixed top-0 left-0 right-0 z-50 transition-all duration-300 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800"
     >
       <div className="mx-auto px-2 sm:px-6 lg:px-10">
         <div className="relative flex h-20 items-center justify-between">
@@ -74,7 +83,7 @@ export default function Navbar() {
                     className={classNames(
                       pathname === item.href
                         ? "text-[#f04d46] font-medium"
-                        : "text-gray-800 hover:text-[#f04d46]",
+                        : "text-gray-800 dark:text-gray-200 hover:text-[#f04d46]",
                       "rounded-md px-2 py-2 text-lg"
                     )}
                   >
@@ -85,6 +94,23 @@ export default function Navbar() {
             </div>
           </div>
           <div className="absolute inset-y-0 right-0 flex items-center pr-2 sm:static sm:inset-auto sm:ml-6 sm:pr-0">
+            {/* Theme toggle button */}
+            {mounted && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+                className="mr-2 rounded-full"
+                aria-label="Toggle theme"
+              >
+                {theme === "dark" ? (
+                  <SunIcon className="h-5 w-5 text-yellow-400" />
+                ) : (
+                  <MoonIcon className="h-5 w-5 text-gray-700" />
+                )}
+              </Button>
+            )}
+
             {/* Profile dropdown */}
             <Menu as="div" className="relative ml-3">
               <div>
@@ -100,12 +126,12 @@ export default function Navbar() {
               </div>
               <MenuItems
                 transition
-                className="absolute border border-[#f04d46] right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white py-1 ring-1 shadow-lg ring-black/5 transition focus:outline-hidden data-closed:scale-95 data-closed:transform data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in"
+                className="absolute border border-[#f04d46] right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white dark:bg-gray-800 py-1 ring-1 shadow-lg ring-black/5 transition focus:outline-hidden data-closed:scale-95 data-closed:transform data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in"
               >
                 <MenuItem>
                   <Link
                     href="#"
-                    className="block px-4 py-2 text-sm text-gray-700 data-focus:bg-gray-100 data-focus:outline-hidden"
+                    className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 data-focus:bg-gray-100 dark:data-focus:bg-gray-700 data-focus:outline-hidden"
                   >
                     Your Profile
                   </Link>
@@ -113,7 +139,7 @@ export default function Navbar() {
                 <MenuItem>
                   <Link
                     href="#"
-                    className="block px-4 py-2 text-sm text-gray-700 data-focus:bg-gray-100 data-focus:outline-hidden"
+                    className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 data-focus:bg-gray-100 dark:data-focus:bg-gray-700 data-focus:outline-hidden"
                   >
                     Sign out
                   </Link>
@@ -133,7 +159,7 @@ export default function Navbar() {
                 className={classNames(
                   pathname === item.href
                     ? "text-[#f04d46] font-medium"
-                    : "text-gray-500 hover:text-[#f04d46]",
+                    : "text-gray-500 dark:text-gray-300 hover:text-[#f04d46]",
                   "block rounded-md px-3 py-2 text-base font-medium"
                 )}
               >
