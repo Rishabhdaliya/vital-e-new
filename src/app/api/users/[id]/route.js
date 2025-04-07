@@ -11,8 +11,8 @@ import {
 
 export async function PUT(req, { params }) {
   try {
-    const { userId } = await params;
-    if (!userId) {
+    const { id } = await params;
+    if (!id) {
       console.error("User ID is missing");
       return NextResponse.json(
         { message: "User ID is missing in the request params" },
@@ -33,7 +33,7 @@ export async function PUT(req, { params }) {
 
     // Reference to the users collection in Firestore
     const usersCollection = collection(db, "users");
-    const userRef = doc(usersCollection, userId);
+    const userRef = doc(usersCollection, id);
 
     const updateData = { isAvailable };
 
@@ -69,13 +69,13 @@ export async function PUT(req, { params }) {
     }
 
     if (updatedUserDoc.exists()) {
-      // Include the userId in the response
+      // Include the id in the response
       const userData = updatedUserDoc.data();
       return NextResponse.json({
         message: "User updated successfully",
         status: 200,
         data: {
-          id: userId, // Include the userId here
+          id: id, // Include the id here
           ...userData, // Spread the rest of the document data
         },
       });
@@ -94,11 +94,12 @@ export async function PUT(req, { params }) {
   }
 }
 
+// GET handler to fetch a specific user
 export async function GET(request, { params }) {
-  try {
-    const userId = params.id;
+  const { id } = await params;
 
-    if (!userId) {
+  try {
+    if (!id) {
       return NextResponse.json(
         { message: "User ID is required" },
         { status: 400 }
@@ -106,7 +107,7 @@ export async function GET(request, { params }) {
     }
 
     // Get user document
-    const userDoc = await getDoc(doc(db, "users", userId));
+    const userDoc = await getDoc(doc(db, "users", id));
 
     if (!userDoc.exists()) {
       return NextResponse.json({ message: "User not found" }, { status: 404 });
@@ -117,46 +118,9 @@ export async function GET(request, { params }) {
       ...userDoc.data(),
     };
 
-    // Get vouchers for this user
-    const vouchersRef = collection(db, "vouchers");
-    let userVouchers = [];
-
-    // If user has voucher IDs, fetch those vouchers
-    if (
-      userData.vouchers &&
-      Array.isArray(userData.vouchers) &&
-      userData.vouchers.length > 0
-    ) {
-      // Fetch each voucher by ID
-      const voucherPromises = userData.vouchers.map(async (voucherId) => {
-        const voucherDoc = await getDoc(doc(db, "vouchers", voucherId));
-        if (voucherDoc.exists()) {
-          return {
-            id: voucherDoc.id,
-            ...voucherDoc.data(),
-          };
-        }
-        return null;
-      });
-
-      userVouchers = (await Promise.all(voucherPromises)).filter(Boolean);
-    } else {
-      // If no voucher IDs, check for vouchers claimed by this user
-      const voucherQuery = query(vouchersRef, where("claimedBy", "==", userId));
-      const voucherSnapshot = await getDocs(voucherQuery);
-
-      voucherSnapshot.forEach((doc) => {
-        userVouchers.push({
-          id: doc.id,
-          ...doc.data(),
-        });
-      });
-    }
-
     return NextResponse.json({
       message: "User data retrieved successfully",
       data: userData,
-      vouchers: userVouchers,
     });
   } catch (error) {
     console.error("Error fetching user data:", error);

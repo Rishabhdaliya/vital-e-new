@@ -5,6 +5,9 @@ import Header from "@/components/header";
 import SessionWrapper from "@/lib/SessionWrapper";
 import { Toaster } from "@/components/ui/toaster";
 import { RouteGuard } from "@/components/auth-guard/auth-guard";
+import Navbar from "@/components/layout/headers";
+import Head from "next/head";
+
 // import { Toaster } from "@/components/ui/toaster";
 
 const geistSans = Geist({
@@ -32,9 +35,16 @@ export default function RootLayout({
       <body
       // className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        <Head>
+          <link
+            href="https://fonts.googleapis.com/css2?family=Chewy&display=swap"
+            rel="stylesheet"
+          />
+        </Head>
         <SessionWrapper>
           <Toaster />
-          <Header />
+          {/* <Header /> */}
+          <Navbar />
           {/* <RouteGuard> */}
           <div className="md:px-8 px-3 ">{children}</div>
           {/* </RouteGuard> */}

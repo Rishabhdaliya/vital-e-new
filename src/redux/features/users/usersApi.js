@@ -21,9 +21,9 @@ export const usersApi = api.injectEndpoints({
         }
       },
     }),
-    getUserById: builder.mutation({
-      query: ({ userId }) => ({
-        url: `/api/users/${userId}`,
+    getUserById: builder.query({
+      query: ({ id }) => ({
+        url: `/api/users/${id}`,
         method: "GET",
       }),
       async onQueryStarted({ userId }, { dispatch, queryFulfilled }) {
@@ -74,7 +74,7 @@ export const usersApi = api.injectEndpoints({
 
 export const {
   useGetUsersQuery,
-  useGetUserByIdMutation,
+  useGetUserByIdQuery,
   useUpdateUsersMutation,
   useAddUserMutation,
 } = usersApi;
