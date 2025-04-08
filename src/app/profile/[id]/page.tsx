@@ -239,14 +239,16 @@ export default function ProfilePage({ params }: any) {
               src={`https://api.dicebear.com/7.x/initials/svg?seed=${currentUser.name}`}
               alt={currentUser.name}
             />
-            <AvatarFallback className="text-2xl">
+            <AvatarFallback className="text-2xl ">
               {getInitials(currentUser.name)}
             </AvatarFallback>
           </Avatar>
 
           <div className="space-y-2 text-center md:text-left">
             <div className="space-y-1">
-              <h1 className="text-2xl font-bold">{currentUser.name}</h1>
+              <h1 className="text-2xl [#f04d46] font-bold">
+                {currentUser.name}
+              </h1>
               <div className="flex items-center justify-center md:justify-start gap-2 text-muted-foreground">
                 <Phone className="h-4 w-4" />
                 <span>{currentUser.phoneNo}</span>
