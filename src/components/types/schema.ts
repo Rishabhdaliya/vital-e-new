@@ -6,6 +6,7 @@ export const userSchema = z.object({
   phoneNo: z.number(),
   city: z.string(),
   isVerified: z.boolean(),
+  registeredBy: z.string().optional(),
   vouchers: z.array(z.string()).optional(),
   role: z.enum(["ADMIN", "RETAILER", "CUSTOMER", "DEALER"]),
 });
