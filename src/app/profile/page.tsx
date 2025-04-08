@@ -1,12 +1,9 @@
 "use client";
 
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useState } from "react";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import { useToast } from "@/hooks/use-toast";
-import { useDispatch } from "react-redux";
-import { doc, getDoc, updateDoc } from "firebase/firestore";
-import { db } from "@/lib/firebase/config";
 import {
   Loader2,
   CheckCircle,
@@ -27,14 +24,13 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import { Switch } from "@/components/ui/switch";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Label } from "@/components/ui/label";
-import { updateUsers } from "@/redux/features/users/usersSlice";
-import { Skeleton } from "@/components/ui/skeleton";
+import { useSelector } from "react-redux";
 import VoucherMetrics from "@/components/profile/voucher-metrics";
+import { Skeleton } from "@/components/ui/skeleton";
 import { calculateVoucherMetrics } from "@/lib/utils/utils";
-import { getInitials } from "@/lib/utils";
+import { useUpdateUserDataMutation } from "@/redux/features/users/usersApi";
 
 // Define the form schema with Yup
 const validationSchema = Yup.object({
@@ -50,21 +46,6 @@ const validationSchema = Yup.object({
   isVerified: Yup.boolean(),
 });
 
-// Define the user type
-interface User {
-  id: string;
-  name: string;
-  phoneNo: string;
-  city: string;
-  isVerified: boolean;
-  role: string;
-  vouchers?: string[];
-  createdAt: {
-    seconds: number;
-    nanoseconds: number;
-  };
-}
-
 // Define the form values type
 interface FormValues {
   name: string;
@@ -73,49 +54,11 @@ interface FormValues {
   isVerified: boolean;
 }
 
-export default function ProfilePage({ params }: any) {
+export default function ProfilePage() {
   const { toast } = useToast();
-  const dispatch = useDispatch();
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const currentUser = useSelector((state: any) => state.users.currentUser);
   const [isEditing, setIsEditing] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
-
-  // Fetch user data
-  useEffect(() => {
-    const fetchUser = async () => {
-      const { id } = await params;
-
-      if (!id) return;
-
-      try {
-        setIsLoading(true);
-        const userDoc = await getDoc(doc(db, "users", params?.id));
-
-        if (!userDoc.exists()) {
-          return;
-        }
-
-        const userData = {
-          id: userDoc.id,
-          ...userDoc.data(),
-        } as User;
-
-        setCurrentUser(userData);
-      } catch (error) {
-        console.error("Error fetching user:", error);
-        toast({
-          title: "Error",
-          description: "Failed to load user profile",
-          variant: "destructive",
-        });
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchUser();
-  }, [params, toast]);
+  const [updateUserData, { isLoading }] = useUpdateUserDataMutation();
 
   // Initialize formik
   const formik = useFormik<FormValues>({
@@ -125,44 +68,32 @@ export default function ProfilePage({ params }: any) {
       city: currentUser?.city || "",
       isVerified: currentUser?.isVerified || false,
     },
-    enableReinitialize: true, // Important to update form when currentUser changes
     validationSchema,
     onSubmit: async (values) => {
       if (!currentUser) {
         toast({
           title: "Error",
-          description: "User not found. Please try again.",
+          description: "User not found. Please sign in again.",
           variant: "destructive",
         });
         return;
       }
 
-      setIsSaving(true);
-
       try {
-        // Update user in Firestore
-        const userRef = doc(db, "users", currentUser.id);
-        await updateDoc(userRef, {
-          name: values.name,
-          phoneNo: values.phoneNo,
-          city: values.city,
-          isVerified: values.isVerified,
-          updatedAt: new Date(),
-        });
+        console.log("Submitting form with values:", values);
 
-        // Update user in Redux store
-        dispatch(
-          updateUsers({
-            userId: currentUser.id,
-            userData: values,
-          })
-        );
+        // Use the RTK Query mutation hook with the correct parameter structure
+        const result = await updateUserData({
+          id: currentUser.id,
+          userData: {
+            name: values.name,
+            phoneNo: values.phoneNo,
+            city: values.city,
+            isVerified: values.isVerified,
+          },
+        }).unwrap();
 
-        // Update local state
-        setCurrentUser({
-          ...currentUser,
-          ...values,
-        });
+        console.log("Update result:", result);
 
         toast({
           title: "Profile Updated",
@@ -177,8 +108,6 @@ export default function ProfilePage({ params }: any) {
           description: "Failed to update your profile. Please try again.",
           variant: "destructive",
         });
-      } finally {
-        setIsSaving(false);
       }
     },
   });
@@ -196,19 +125,6 @@ export default function ProfilePage({ params }: any) {
     setIsEditing(false);
   };
 
-  // Show loading state
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto" />
-          <p className="mt-4 text-lg">Loading profile...</p>
-        </div>
-      </div>
-    );
-  }
-
-  // Show not found state
   if (!currentUser) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -216,17 +132,23 @@ export default function ProfilePage({ params }: any) {
           <CardHeader className="text-center">
             <CardTitle>User Not Found</CardTitle>
             <CardDescription>
-              The requested user profile could not be found.
+              Please sign in to view your profile.
             </CardDescription>
           </CardHeader>
-          <CardContent className="flex justify-center">
-            <Button onClick={() => window.history.back()}>Go Back</Button>
-          </CardContent>
         </Card>
       </div>
     );
   }
 
+  // Get user initials for avatar
+  const getInitials = (name: string) => {
+    return name
+      .split(" ")
+      .map((part) => part[0])
+      .join("")
+      .toUpperCase()
+      .substring(0, 2);
+  };
   const metrics = calculateVoucherMetrics(currentUser?.vouchers);
 
   return (
@@ -292,7 +214,7 @@ export default function ProfilePage({ params }: any) {
             <Button
               variant={isEditing ? "outline" : "default"}
               onClick={() => setIsEditing(!isEditing)}
-              disabled={isSaving}
+              disabled={isLoading}
             >
               {isEditing ? "Cancel Edit" : "Edit Profile"}
             </Button>
@@ -324,7 +246,7 @@ export default function ProfilePage({ params }: any) {
                     value={formik.values.name}
                     onChange={formik.handleChange}
                     onBlur={formik.handleBlur}
-                    disabled={!isEditing || isSaving}
+                    disabled={!isEditing || isLoading}
                     className={!isEditing ? "bg-muted" : ""}
                   />
                   {formik.touched.name && formik.errors.name && (
@@ -362,7 +284,7 @@ export default function ProfilePage({ params }: any) {
                     value={formik.values.city}
                     onChange={formik.handleChange}
                     onBlur={formik.handleBlur}
-                    disabled={!isEditing || isSaving}
+                    disabled={!isEditing || isLoading}
                     className={!isEditing ? "bg-muted" : ""}
                   />
                   {formik.touched.city && formik.errors.city && (
@@ -379,15 +301,15 @@ export default function ProfilePage({ params }: any) {
                     type="button"
                     variant="outline"
                     onClick={handleCancel}
-                    disabled={isSaving}
+                    disabled={isLoading}
                   >
                     Cancel
                   </Button>
                   <Button
                     type="submit"
-                    disabled={isSaving || !formik.dirty || !formik.isValid}
+                    disabled={isLoading || !formik.dirty || !formik.isValid}
                   >
-                    {isSaving ? (
+                    {isLoading ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                         Saving...

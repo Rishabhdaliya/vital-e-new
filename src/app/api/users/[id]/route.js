@@ -1,17 +1,12 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/firebase/config";
-import {
-  doc,
-  getDoc,
-  collection,
-  query,
-  where,
-  getDocs,
-} from "firebase/firestore";
+import { doc, getDoc, updateDoc } from "firebase/firestore";
 
 export async function PUT(req, { params }) {
   try {
+    // Await the params object to get the id
     const { id } = await params;
+
     if (!id) {
       console.error("User ID is missing");
       return NextResponse.json(
@@ -20,27 +15,45 @@ export async function PUT(req, { params }) {
       );
     }
 
-    // Log the request body
-    const { isAvailable } = await req.json();
+    // Clone the request to avoid "body already used" errors
+    const clonedReq = req.clone();
 
-    if (typeof isAvailable !== "boolean") {
-      console.error("isAvailable should be a boolean");
+    // Parse request body with error handling
+    let updateData;
+    try {
+      updateData = await clonedReq.json();
+      console.log("Update data received:", updateData);
+    } catch (jsonError) {
+      console.error("Error parsing JSON:", jsonError);
       return NextResponse.json(
-        { message: "Invalid isAvailable value" },
+        {
+          message: "Invalid JSON in request body",
+          error: jsonError.message,
+        },
         { status: 400 }
       );
     }
 
-    // Reference to the users collection in Firestore
-    const usersCollection = collection(db, "users");
-    const userRef = doc(usersCollection, id);
+    // Reference to the user document in Firestore
+    const userRef = doc(db, "users", id);
 
-    const updateData = { isAvailable };
+    // Check if user exists
+    const userDoc = await getDoc(userRef);
+    if (!userDoc.exists()) {
+      return NextResponse.json({ message: "User not found" }, { status: 404 });
+    }
+
+    // Add updatedAt timestamp
+    const dataToUpdate = {
+      ...updateData,
+      updatedAt: new Date(),
+    };
 
     // Perform the update
     try {
-      await updateDoc(userRef, updateData);
+      await updateDoc(userRef, dataToUpdate);
     } catch (updateError) {
+      console.error("Error updating document:", updateError);
       return NextResponse.json(
         {
           message: "Error updating user document",
@@ -51,19 +64,7 @@ export async function PUT(req, { params }) {
     }
 
     // Fetch the updated document
-    let updatedUserDoc;
-    try {
-      updatedUserDoc = await getDoc(userRef);
-    } catch (fetchError) {
-      console.error("Error fetching document:", fetchError);
-      return NextResponse.json(
-        {
-          message: "Error fetching updated user data",
-          error: fetchError.message,
-        },
-        { status: 500 }
-      );
-    }
+    const updatedUserDoc = await getDoc(userRef);
 
     if (updatedUserDoc.exists()) {
       // Include the id in the response
@@ -72,13 +73,13 @@ export async function PUT(req, { params }) {
         message: "User updated successfully",
         status: 200,
         data: {
-          id: id, // Include the id here
-          ...userData, // Spread the rest of the document data
+          id: id,
+          ...userData,
         },
       });
     } else {
       return NextResponse.json(
-        { message: "User not found", status: 404 },
+        { message: "User not found after update", status: 404 },
         { status: 404 }
       );
     }
@@ -93,9 +94,10 @@ export async function PUT(req, { params }) {
 
 // GET handler to fetch a specific user
 export async function GET(request, { params }) {
-  const { id } = await params;
-
   try {
+    // Await the params object to get the id
+    const { id } = await params;
+
     if (!id) {
       return NextResponse.json(
         { message: "User ID is required" },
