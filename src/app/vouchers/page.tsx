@@ -40,16 +40,12 @@ export default function VouchersPage() {
   const { data: vouchers, error, isLoading } = useGetVouchersQuery("");
   const { toast } = useToast();
 
-  if (isLoading) {
-    return <TableSkeleton />;
-  }
-
   if (error) {
     toast({ title: "Error", description: "Failed to load vouchers." });
     return null;
   }
 
-  if (!vouchers) {
+  if (!vouchers && error) {
     notFound();
   }
 
@@ -59,18 +55,8 @@ export default function VouchersPage() {
         <h1 className="text-[#f04d46] text-2xl font-bold">Vouchers</h1>
         <BulkUploadDialog />
       </div>
-      <Suspense fallback={<TableSkeleton />}>
-        <VoucherTable vouchers={vouchers?.data || []} />
-      </Suspense>
-    </div>
-  );
-}
 
-function TableSkeleton() {
-  return (
-    <div className="space-y-4">
-      <Skeleton className="h-10 w-full" />
-      <Skeleton className="h-96 w-full" />
+      <VoucherTable isLoading={isLoading} vouchers={vouchers?.data || []} />
     </div>
   );
 }

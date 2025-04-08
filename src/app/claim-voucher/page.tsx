@@ -182,7 +182,7 @@ export default function ClaimVoucher() {
 
           <CardFooter>
             <Button
-              className="w-full bg-[#f04d46] cursor-pointer text-white animate-pulse-slow"
+              variant="filled"
               onClick={() => {
                 setSuccess(false);
                 setClaimedProduct(null);
@@ -237,11 +237,7 @@ export default function ClaimVoucher() {
                 )}
               </div>
 
-              <Button
-                className="w-full bg-[#f04d46] cursor-pointer text-white"
-                type="submit"
-                disabled={isLoading}
-              >
+              <Button variant="filled" type="submit" disabled={isLoading}>
                 {isLoading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />

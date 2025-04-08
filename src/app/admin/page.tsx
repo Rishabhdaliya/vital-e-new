@@ -71,10 +71,11 @@ export default function Admin() {
           </div>
           <div className="flex items-center space-x-2">
             <Button
+              variant="outline"
               className={
                 isAnimating
                   ? "bg-green-400 text-white"
-                  : "bg-[#f04d46] text-white cursor-pointer"
+                  : "border-[#f04d46] text-[#f04d46] group cursor-pointer"
               }
               onClick={() => handleRefetchData("issues")}
             >

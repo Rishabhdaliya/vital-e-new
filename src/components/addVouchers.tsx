@@ -74,7 +74,7 @@ export function VoucherForm({
                   )}
                 </div>
                 <div className="flex flex-col gap-3">
-                  <Button type="submit" className="w-full bg-black text-white">
+                  <Button type="submit" variant="outline">
                     Add Voucher
                   </Button>
                 </div>

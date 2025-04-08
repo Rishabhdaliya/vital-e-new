@@ -114,10 +114,7 @@ export function RegistrationForm({
                   <OTPForm phoneNumber={"7066612777"} />
                 </div> */}
                 <div className="flex flex-col gap-3">
-                  <Button
-                    type="submit"
-                    className="w-full bg-[#f04d46] cursor-pointer text-white"
-                  >
+                  <Button type="submit" variant="filled">
                     Register
                   </Button>
                 </div>

@@ -134,9 +134,7 @@ export default async function UserProfilePage({ params }: { params: any }) {
       </Suspense>
 
       {/* Voucher Table */}
-      <Suspense fallback={<TableSkeleton />}>
-        <VoucherTable vouchers={vouchers} />
-      </Suspense>
+      <VoucherTable isLoading={false} vouchers={vouchers} />
     </div>
   );
 }
@@ -151,22 +149,6 @@ function MetricsSkeleton() {
           className="h-32 w-full rounded-md"
         />
       ))}
-    </div>
-  );
-}
-
-function TableSkeleton() {
-  return (
-    <div className="space-y-4">
-      <Skeleton className="h-10 w-full rounded-md" />
-      <div className="space-y-2">
-        {[1, 2, 3, 4, 5].map((i) => (
-          <Skeleton
-            key={`row-skeleton-${i}`}
-            className="h-16 w-full rounded-md"
-          />
-        ))}
-      </div>
     </div>
   );
 }

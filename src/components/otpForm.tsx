@@ -146,11 +146,7 @@ export function OTPForm({ phoneNumber }: OTPFormProps) {
   return (
     <div className="flex flex-col gap-3 items-center">
       {!isOtpSent ? (
-        <Button
-          className="w-full bg-black text-white cursor-pointer"
-          onClick={sendOTP}
-          disabled={loading}
-        >
+        <Button variant="outline" onClick={sendOTP} disabled={loading}>
           {loading ? "Sending..." : "Verify phone Number OTP"}
         </Button>
       ) : (

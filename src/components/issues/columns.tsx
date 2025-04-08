@@ -140,12 +140,15 @@ export const columns: ColumnDef<Users>[] = [
         {row.getValue("isVerified") ? (
           <Badge
             variant="outline"
-            className="mt-1 border-green-500 text-green-500"
+            className="mt-1 border-green-200 text-green-500 bg-green-50"
           >
             Verified
           </Badge>
         ) : (
-          <Badge variant="outline" className="mt-1 border-red-500 text-red-500">
+          <Badge
+            variant="outline"
+            className="mt-1 border-red-200 text-red-500 bg-red-50"
+          >
             unVerified
           </Badge>
         )}
@@ -180,7 +183,7 @@ export const columns: ColumnDef<Users>[] = [
     ),
     cell: ({ row }) => (
       <Link href={`/user/${row.getValue("id")}`}>
-        <span className="text-md text-white bg-[#f04d46] p-2 rounded-sm cursor-pointer font-normal max-w-[500px] truncate ">
+        <span className="text-md text-[#f04d46] hover:bg-[#f04d46] hover:text-white border border-[#f04d46] p-2 rounded-sm cursor-pointer font-normal max-w-[500px] truncate ">
           Update
         </span>
       </Link>

@@ -28,6 +28,7 @@ import {
 import { doc, updateDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase/config";
 import { useToast } from "@/hooks/use-toast";
+import { Skeleton } from "../ui/skeleton";
 
 // Define the Voucher interface
 interface Voucher {
@@ -45,9 +46,13 @@ interface Voucher {
 
 interface VoucherTableProps {
   vouchers: Voucher[];
+  isLoading: boolean;
 }
 
-export default function VoucherTable({ vouchers = [] }: VoucherTableProps) {
+export default function VoucherTable({
+  vouchers = [],
+  isLoading,
+}: VoucherTableProps) {
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [currentPage, setCurrentPage] = useState<number>(1);
@@ -260,7 +265,17 @@ export default function VoucherTable({ vouchers = [] }: VoucherTableProps) {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {currentVouchers.length > 0 ? (
+            {isLoading ? (
+              Array.from({ length: 10 }).map((_, idx) => (
+                <TableRow key={idx} className="skeleton-row">
+                  {Array.from({ length: 6 }).map((visibleColumn, index) => (
+                    <TableCell key={index}>
+                      <Skeleton className="h-4 bg-gray-200 w-full" />
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))
+            ) : currentVouchers.length > 0 ? (
               currentVouchers.map((voucher) => (
                 <TableRow key={voucher.id}>
                   <TableCell>{voucher.batchNo || ""}</TableCell>

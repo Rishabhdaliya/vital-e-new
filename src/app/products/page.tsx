@@ -11,7 +11,6 @@ import {
   ChevronLeft,
   ChevronRight,
   Pencil,
-  Trash2,
   AlertTriangle,
 } from "lucide-react";
 import {
@@ -48,13 +47,14 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   useGetProductsQuery,
   useAddProductMutation,
   useUpdateProductMutation,
   useDeleteProductMutation,
 } from "@/redux/features/products/productApi";
-import { Skeleton } from "@/components/ui/skeleton";
+import { getProductStatus, getStatusColor } from "@/lib/utils";
 
 // Define interfaces for our data structures
 interface Product {
@@ -232,45 +232,45 @@ export default function ProductsPage() {
   };
 
   // Handle delete button click
-  // const handleDeleteClick = (product: Product) => {
-  //   setProductToDelete(product);
-  //   setIsDeleteDialogOpen(true);
-  // };
+  const handleDeleteClick = (product: Product) => {
+    setProductToDelete(product);
+    setIsDeleteDialogOpen(true);
+  };
 
   // Handle confirm delete
-  // const handleConfirmDelete = async () => {
-  //   if (!productToDelete) return;
+  const handleConfirmDelete = async () => {
+    if (!productToDelete) return;
 
-  //   try {
-  //     await deleteProduct(productToDelete.id).unwrap();
+    try {
+      await deleteProduct(productToDelete.id).unwrap();
 
-  //     toast({
-  //       title: "Success!",
-  //       description: "Product has been deleted successfully.",
-  //     });
+      toast({
+        title: "Success!",
+        description: "Product has been deleted successfully.",
+      });
 
-  //     // Close dialog and reset state
-  //     setIsDeleteDialogOpen(false);
-  //     setProductToDelete(null);
+      // Close dialog and reset state
+      setIsDeleteDialogOpen(false);
+      setProductToDelete(null);
 
-  //     // If we deleted the last item on the current page, go to previous page
-  //     if (products.length === 1 && currentPage > 1) {
-  //       setCurrentPage(currentPage - 1);
-  //     } else {
-  //       // Refetch products list
-  //       refetch();
-  //     }
-  //   } catch (error: any) {
-  //     console.error("Error deleting product:", error);
-  //     toast({
-  //       title: "Error",
-  //       description: `Failed to delete product: ${
-  //         error.message || "Unknown error"
-  //       }`,
-  //       variant: "destructive",
-  //     });
-  //   }
-  // };
+      // If we deleted the last item on the current page, go to previous page
+      if (products.length === 1 && currentPage > 1) {
+        setCurrentPage(currentPage - 1);
+      } else {
+        // Refetch products list
+        refetch();
+      }
+    } catch (error: any) {
+      console.error("Error deleting product:", error);
+      toast({
+        title: "Error",
+        description: `Failed to delete product: ${
+          error.message || "Unknown error"
+        }`,
+        variant: "destructive",
+      });
+    }
+  };
 
   // Handle dialog close
   const handleDialogOpenChange = (open: boolean) => {
@@ -354,7 +354,7 @@ export default function ProductsPage() {
         <h1 className="text-2xl font-bold">Products</h1>
         <div className="flex gap-2">
           <Button
-            className="w-full bg-[#f04d46] cursor-pointer text-white"
+            variant="outline"
             onClick={() => {
               setEditingProduct(null);
               formik.resetForm();
@@ -379,14 +379,36 @@ export default function ProductsPage() {
               aria-label="Search products"
             />
           </div>
+
+          <div className="flex gap-2 flex-wrap">
+            <div className="w-40">
+              <Select
+                value={itemsPerPage.toString()}
+                onValueChange={handlePageSizeChange}
+              >
+                <SelectTrigger>
+                  <div className="flex items-center">
+                    <SelectValue placeholder="10 per page" />
+                  </div>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="5">5 per page</SelectItem>
+                  <SelectItem value="10">10 per page</SelectItem>
+                  <SelectItem value="20">20 per page</SelectItem>
+                  <SelectItem value="50">50 per page</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
         </div>
 
-        <div className="overflow-x-auto ">
+        <div className="overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>Product Name</TableHead>
                 <TableHead>Quantity</TableHead>
+                <TableHead>Status</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -394,7 +416,7 @@ export default function ProductsPage() {
               {isLoadingProducts ? (
                 Array.from({ length: 10 }).map((_, idx) => (
                   <TableRow key={idx} className="skeleton-row">
-                    {Array.from({ length: 3 }).map((_, columnIdx) => (
+                    {Array.from({ length: 4 }).map((_, columnIdx) => (
                       <TableCell key={columnIdx}>
                         <Skeleton className="h-4 bg-gray-200 w-full" />
                       </TableCell>
@@ -402,31 +424,35 @@ export default function ProductsPage() {
                   </TableRow>
                 ))
               ) : products.length > 0 ? (
-                products.map((product: any) => (
-                  <TableRow key={product.id}>
-                    <TableCell>{product.name}</TableCell>
-                    <TableCell>{product.quantity}</TableCell>
-                    <TableCell align="center">
-                      <div className="flex justify-center gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleEditProduct(product)}
+                products.map((product: any) => {
+                  const status = getProductStatus(product.quantity);
+                  const statusColor = getStatusColor(status);
+
+                  return (
+                    <TableRow key={product.id}>
+                      <TableCell>{product.name}</TableCell>
+                      <TableCell>{product.quantity}</TableCell>
+                      <TableCell>
+                        <span
+                          className={`px-2 py-1 rounded-full text-xs font-medium ${statusColor}`}
                         >
-                          <Pencil className="h-4 w-4 " />
-                          Edit
-                        </Button>
-                        {/* <Button
-                          size="sm"
-                          onClick={() => handleDeleteClick(product)}
-                        >
-                          <Trash2 className="h-4 w-4 " />
-                          Delete
-                        </Button> */}
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))
+                          {status}
+                        </span>
+                      </TableCell>
+                      <TableCell align="center">
+                        <div className="flex justify-center gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleEditProduct(product)}
+                          >
+                            Update
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })
               ) : (
                 <TableRow>
                   <TableCell
@@ -475,7 +501,7 @@ export default function ProductsPage() {
                       }
                       className={`px-3 py-1 rounded-md ${
                         currentPage === number
-                          ? "text-black bg-gray-100"
+                          ? "bg-gray-200 text-black"
                           : "hover:bg-gray-100"
                       }`}
                     >
@@ -503,7 +529,7 @@ export default function ProductsPage() {
 
       {/* Product Form Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={handleDialogOpenChange}>
-        <DialogContent className="bg-white ">
+        <DialogContent className="bg-white">
           <DialogHeader>
             <DialogTitle>
               {editingProduct ? "Update Product" : "Add New Product"}
@@ -548,7 +574,7 @@ export default function ProductsPage() {
 
             <DialogFooter>
               <Button
-                className="w-full bg-[#f04d46] cursor-pointer text-white"
+                variant="outline"
                 type="submit"
                 disabled={isAddingProduct || isUpdatingProduct}
               >
@@ -566,7 +592,7 @@ export default function ProductsPage() {
       </Dialog>
 
       {/* Delete Confirmation Dialog */}
-      {/* <AlertDialog
+      <AlertDialog
         open={isDeleteDialogOpen}
         onOpenChange={setIsDeleteDialogOpen}
       >
@@ -594,7 +620,7 @@ export default function ProductsPage() {
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
-      </AlertDialog> */}
+      </AlertDialog>
     </div>
   );
 }
