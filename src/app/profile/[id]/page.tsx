@@ -34,6 +34,7 @@ import { updateUsers } from "@/redux/features/users/usersSlice";
 import { Skeleton } from "@/components/ui/skeleton";
 import VoucherMetrics from "@/components/profile/voucher-metrics";
 import { calculateVoucherMetrics } from "@/lib/utils/utils";
+import { getInitials } from "@/lib/utils";
 
 // Define the form schema with Yup
 const validationSchema = Yup.object({
@@ -224,15 +225,6 @@ export default function ProfilePage({ params }: { params: { id: string } }) {
     );
   }
 
-  // Get user initials for avatar
-  const getInitials = (name: string) => {
-    return name
-      .split(" ")
-      .map((part) => part[0])
-      .join("")
-      .toUpperCase()
-      .substring(0, 2);
-  };
   const metrics = calculateVoucherMetrics(currentUser?.vouchers);
 
   return (
@@ -343,11 +335,11 @@ export default function ProfilePage({ params }: { params: { id: string } }) {
                   <Input
                     id="phoneNo"
                     name="phoneNo"
+                    disabled
                     placeholder="Your phone number"
                     value={formik.values.phoneNo}
                     onChange={formik.handleChange}
                     onBlur={formik.handleBlur}
-                    disabled={!isEditing || isSaving}
                     className={!isEditing ? "bg-muted" : ""}
                   />
                   {formik.touched.phoneNo && formik.errors.phoneNo && (

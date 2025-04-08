@@ -1,8 +1,17 @@
 import Image from "next/image";
 import { Card, CardContent } from "@/components/ui/card";
-import { User, MapPin, Phone, ShieldCheck } from "lucide-react";
+import {
+  User,
+  MapPin,
+  Phone,
+  ShieldCheck,
+  CheckCircle,
+  XCircle,
+} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Users } from "../issues/data/schema";
+import { Avatar, AvatarFallback, AvatarImage } from "@radix-ui/react-avatar";
+import { getInitials } from "@/lib/utils";
 
 interface UserProfileHeaderProps {
   user: any;
@@ -10,57 +19,63 @@ interface UserProfileHeaderProps {
 
 export default function UserProfileHeader({ user }: UserProfileHeaderProps) {
   // Use provided values or defaults for the new fields
-  const city = user?.city || "San Francisco, CA";
-  const phoneNo = user?.phoneNo || "+1 (555) 123-4567";
+  const city = user?.city || "NA";
+  const phoneNo = user?.phoneNo || "NA";
   const verified = user?.isVerified !== undefined ? user.isVerified : true;
+  console.log(user);
 
   return (
     <Card>
       <CardContent className="p-6">
-        <div className="flex flex-col md:flex-row items-center gap-6">
-          <div className="relative">
-            <div className="h-24 w-24 rounded-full overflow-hidden bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-700 border border-gray-200 dark:border-gray-700 shadow-sm">
-              <div className="flex h-full w-full items-center justify-center">
-                <div className="relative w-full h-full flex items-center justify-center">
-                  <div className="absolute inset-0 bg-gradient-to-br from-gray-100 to-gray-400 dark:from-gray-800 dark:to-gray-700"></div>
-                  <User
-                    className="h-12 w-12 text-gray-500  relative z-10"
-                    strokeWidth={1.5}
-                  />
-                </div>
-              </div>
-            </div>
-            {verified && (
-              <div className="absolute -bottom-1 -right-1 h-7 w-7 rounded-full bg-green-500 flex items-center justify-center border-2 border-white dark:border-gray-800 shadow-sm">
-                <ShieldCheck className="h-3.5 w-3.5 text-white" />
-              </div>
-            )}
-          </div>
+        <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
+          <Avatar className="h-24 w-24 rounded-full p-1 border-2 border-[#f04d46] shadow-lg">
+            <AvatarImage
+              className=" rounded-full "
+              src={`https://api.dicebear.com/7.x/initials/svg?seed=${user.name}`}
+              alt={user.name}
+            />
+            <AvatarFallback className="text-2xl">
+              {getInitials(user.name)}
+            </AvatarFallback>
+          </Avatar>
 
-          <div className="space-y-3 text-center md:text-left">
-            <div>
-              <h1 className="text-2xl font-bold">
-                {user?.name?.toUpperCase()}
-              </h1>
-              {verified && (
-                <Badge
-                  variant="outline"
-                  className="mt-1 border-green-500 text-green-500"
-                >
-                  Verified Account
-                </Badge>
-              )}
-            </div>
-
-            <div className="space-y-1 text-muted-foreground">
-              <div className="flex items-center justify-center md:justify-start gap-2">
-                <MapPin className="h-4 w-4" />
-                <span>{city}</span>
-              </div>
-              <div className="flex items-center justify-center md:justify-start gap-2">
+          <div className="space-y-2 text-center md:text-left">
+            <div className="space-y-1">
+              <h1 className="text-2xl font-bold">{user.name}</h1>
+              <div className="flex items-center justify-center md:justify-start gap-2 text-muted-foreground">
                 <Phone className="h-4 w-4" />
                 <span>{phoneNo}</span>
               </div>
+              <div className="flex items-center justify-center md:justify-start gap-2 text-muted-foreground">
+                <MapPin className="h-4 w-4" />
+                <span>{city}</span>
+              </div>
+            </div>
+            <div className="space-y-1">
+              <p className="text-sm font-medium text-muted-foreground">
+                Member Since:&nbsp;
+                {new Date(user.createdAt.seconds * 1000).toLocaleDateString()}
+              </p>
+            </div>
+            <div className="flex items-center justify-center md:justify-start gap-2">
+              {verified ? (
+                <Badge
+                  variant="outline"
+                  className="bg-green-50 text-green-700 border-green-200 flex items-center gap-1"
+                >
+                  <CheckCircle className="h-3 w-3" />
+                  Verified Account
+                </Badge>
+              ) : (
+                <Badge
+                  variant="outline"
+                  className="bg-amber-50 text-amber-700 border-amber-200 flex items-center gap-1"
+                >
+                  <XCircle className="h-3 w-3" />
+                  Not Verified
+                </Badge>
+              )}
+              <Badge variant="outline">{user.role}</Badge>
             </div>
           </div>
         </div>

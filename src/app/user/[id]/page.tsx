@@ -1,5 +1,4 @@
 import { Suspense } from "react";
-import { notFound } from "next/navigation";
 import UserProfileHeader from "@/components/profile/user-profile-header";
 import VoucherMetrics from "@/components/profile/voucher-metrics";
 import VoucherTable from "@/components/profile/voucher-table";
@@ -14,7 +13,7 @@ import {
   where,
   getDocs,
 } from "firebase/firestore";
-import { calculateVoucherMetrics } from "@/lib/utils/utils";
+import { notFound } from "next/navigation";
 
 // Define types inline to avoid import issues
 interface User {
@@ -50,6 +49,7 @@ async function getUserData(id: string) {
     const userDoc = await getDoc(doc(db, "users", id));
 
     if (!userDoc.exists()) {
+      console.log("User document does not exist");
       return null;
     }
 
@@ -98,6 +98,8 @@ async function getUserData(id: string) {
       });
     }
 
+    console.log("Vouchers fetched:", userVouchers.length);
+
     return {
       user: userData,
       vouchers: userVouchers,
@@ -108,7 +110,26 @@ async function getUserData(id: string) {
   }
 }
 
-export default async function UserProfilePage({ params }: { params: any }) {
+// Calculate voucher metrics
+function calculateVoucherMetrics(vouchers: Voucher[] = []) {
+  const total = vouchers?.length || 0;
+  const claimed = vouchers?.filter((v) => v.status === "CLAIMED").length || 0;
+  const unclaimed = total - claimed;
+
+  return {
+    total,
+    claimed,
+    unclaimed,
+  };
+}
+
+export default async function UserProfilePage({
+  params,
+}: {
+  params: { id: string };
+}) {
+  console.log("Rendering UserProfilePage for ID:", params.id);
+
   // Fetch user data directly from Firestore
   const data = await getUserData(params.id);
 
@@ -117,6 +138,7 @@ export default async function UserProfilePage({ params }: { params: any }) {
   }
 
   const { user, vouchers } = data;
+  console.log("User data:", user);
 
   // Calculate metrics
   const metrics = calculateVoucherMetrics(vouchers);
@@ -124,7 +146,7 @@ export default async function UserProfilePage({ params }: { params: any }) {
   return (
     <div className="container max-w-[90vw] mt-18 mx-auto py-6 space-y-8">
       {/* User Profile Header */}
-      <UserProfileHeader user={user} />
+      {user && <UserProfileHeader user={user} />}
 
       <Separator className="my-8" />
 
@@ -134,7 +156,9 @@ export default async function UserProfilePage({ params }: { params: any }) {
       </Suspense>
 
       {/* Voucher Table */}
-      <VoucherTable isLoading={false} vouchers={vouchers} />
+      <Suspense fallback={<TableSkeleton />}>
+        <VoucherTable vouchers={vouchers} />
+      </Suspense>
     </div>
   );
 }
@@ -149,6 +173,22 @@ function MetricsSkeleton() {
           className="h-32 w-full rounded-md"
         />
       ))}
+    </div>
+  );
+}
+
+function TableSkeleton() {
+  return (
+    <div className="space-y-4">
+      <Skeleton className="h-10 w-full rounded-md" />
+      <div className="space-y-2">
+        {[1, 2, 3, 4, 5].map((i) => (
+          <Skeleton
+            key={`row-skeleton-${i}`}
+            className="h-16 w-full rounded-md"
+          />
+        ))}
+      </div>
     </div>
   );
 }

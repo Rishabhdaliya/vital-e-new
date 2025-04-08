@@ -29,7 +29,7 @@ import { doc, updateDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase/config";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "../ui/skeleton";
-
+import { VoucherTableSorting } from "./voucherTableSorting";
 // Define the Voucher interface
 interface Voucher {
   id: string;
@@ -46,12 +46,16 @@ interface Voucher {
 
 interface VoucherTableProps {
   vouchers: Voucher[];
-  isLoading: boolean;
+  isLoading?: boolean;
 }
+
+// Define sort types
+type SortField = "date" | "product" | null;
+type SortDirection = "asc" | "desc";
 
 export default function VoucherTable({
   vouchers = [],
-  isLoading,
+  isLoading = false,
 }: VoucherTableProps) {
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -59,11 +63,22 @@ export default function VoucherTable({
   const [itemsPerPage, setItemsPerPage] = useState<number>(5);
   const { toast } = useToast();
 
-  // Memoized filter function to improve performance
-  const getFilteredVouchers = useCallback(() => {
+  // Add sorting state - initialize with date in descending order
+  const [sortField, setSortField] = useState<SortField>("date");
+  const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
+
+  // Handle sort
+  const handleSort = (field: string, direction: SortDirection) => {
+    setSortField(field as SortField);
+    setSortDirection(direction);
+  };
+
+  // Memoized filter and sort function to improve performance
+  const getFilteredAndSortedVouchers = useCallback(() => {
     if (!vouchers || !Array.isArray(vouchers)) return [];
 
-    return vouchers.filter((voucher) => {
+    // First filter the vouchers
+    let result = vouchers.filter((voucher) => {
       // Handle potential undefined values safely
       const batchNo = voucher?.batchNo || "";
       const id = voucher?.id || "";
@@ -85,10 +100,32 @@ export default function VoucherTable({
 
       return matchesSearch && matchesStatus;
     });
-  }, [vouchers, searchTerm, statusFilter]);
 
-  // Get filtered vouchers
-  const filteredVouchers = getFilteredVouchers();
+    // Then sort the filtered vouchers
+    if (sortField) {
+      result = [...result].sort((a, b) => {
+        if (sortField === "date") {
+          const dateA = a.createdAt?.seconds || 0;
+          const dateB = b.createdAt?.seconds || 0;
+          return sortDirection === "asc" ? dateA - dateB : dateB - dateA;
+        } else if (sortField === "product") {
+          const productA = (a.productName || "").toLowerCase();
+          const productB = (b.productName || "").toLowerCase();
+          if (sortDirection === "asc") {
+            return productA.localeCompare(productB);
+          } else {
+            return productB.localeCompare(productA);
+          }
+        }
+        return 0;
+      });
+    }
+
+    return result;
+  }, [vouchers, searchTerm, statusFilter, sortField, sortDirection]);
+
+  // Get filtered and sorted vouchers
+  const filteredAndSortedVouchers = getFilteredAndSortedVouchers();
 
   // Reset to first page when filters change
   const handleFilterChange = (newFilter: string) => {
@@ -135,13 +172,13 @@ export default function VoucherTable({
   // Pagination
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentVouchers = filteredVouchers.slice(
+  const currentVouchers = filteredAndSortedVouchers.slice(
     indexOfFirstItem,
     indexOfLastItem
   );
   const totalPages = Math.max(
     1,
-    Math.ceil(filteredVouchers.length / itemsPerPage)
+    Math.ceil(filteredAndSortedVouchers.length / itemsPerPage)
   );
 
   // Format date safely
@@ -214,7 +251,7 @@ export default function VoucherTable({
           />
         </div>
 
-        <div className="flex gap-2  flex-wrap">
+        <div className="flex gap-2 flex-wrap">
           <div className="w-48">
             <Select value={statusFilter} onValueChange={handleFilterChange}>
               <SelectTrigger>
@@ -231,7 +268,7 @@ export default function VoucherTable({
             </Select>
           </div>
 
-          <div className="w-40 ">
+          <div className="w-40">
             <Select
               value={itemsPerPage.toString()}
               onValueChange={handleItemsPerPageChange}
@@ -252,13 +289,29 @@ export default function VoucherTable({
         </div>
       </div>
 
-      <div className="overflow-x-auto ">
+      <div className="overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>
               <TableHead>Batch NO</TableHead>
-              <TableHead>Date of Issue</TableHead>
-              <TableHead>Product</TableHead>
+              <TableHead>
+                <VoucherTableSorting
+                  title="Date of Issue"
+                  sortField="date"
+                  currentSortField={sortField}
+                  currentSortDirection={sortDirection}
+                  onSort={handleSort}
+                />
+              </TableHead>
+              <TableHead>
+                <VoucherTableSorting
+                  title="Product"
+                  sortField="product"
+                  currentSortField={sortField}
+                  currentSortDirection={sortDirection}
+                  onSort={handleSort}
+                />
+              </TableHead>
               <TableHead>Barcode</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Actions</TableHead>
@@ -268,7 +321,7 @@ export default function VoucherTable({
             {isLoading ? (
               Array.from({ length: 10 }).map((_, idx) => (
                 <TableRow key={idx} className="skeleton-row">
-                  {Array.from({ length: 6 }).map((visibleColumn, index) => (
+                  {Array.from({ length: 6 }).map((_, index) => (
                     <TableCell key={index}>
                       <Skeleton className="h-4 bg-gray-200 w-full" />
                     </TableCell>
@@ -289,7 +342,7 @@ export default function VoucherTable({
                   </TableCell>
                   <TableCell align="center">
                     {voucher.barcodeImageUrl ? (
-                      <div className="w-full h-14 ">
+                      <div className="w-full h-14">
                         <img
                           src={voucher.barcodeImageUrl || "/placeholder.svg"}
                           alt={`Barcode for ${voucher.batchNo}`}
@@ -334,7 +387,7 @@ export default function VoucherTable({
                         <SelectTrigger className="w-[180px] mx-auto bg-white">
                           <SelectValue placeholder="Change Status" />
                         </SelectTrigger>
-                        <SelectContent className=" bg-white">
+                        <SelectContent className="bg-white">
                           <SelectItem value="EXPIRED">
                             Set as Expired
                           </SelectItem>
@@ -364,12 +417,12 @@ export default function VoucherTable({
         </Table>
       </div>
 
-      {filteredVouchers.length > 0 && (
+      {filteredAndSortedVouchers.length > 0 && (
         <div className="mt-4 flex flex-col sm:flex-row justify-between items-center text-sm text-gray-500">
           <div className="mb-4 sm:mb-0">
             Showing {indexOfFirstItem + 1}-
-            {Math.min(indexOfLastItem, filteredVouchers.length)} of{" "}
-            {filteredVouchers.length} vouchers
+            {Math.min(indexOfLastItem, filteredAndSortedVouchers.length)} of{" "}
+            {filteredAndSortedVouchers.length} vouchers
           </div>
 
           <div className="flex items-center flex-wrap justify-center gap-1">
