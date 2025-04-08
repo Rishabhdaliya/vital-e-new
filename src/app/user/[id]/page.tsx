@@ -1,5 +1,4 @@
 import { Suspense } from "react";
-import { notFound } from "next/navigation";
 import UserProfileHeader from "@/components/profile/user-profile-header";
 import VoucherMetrics from "@/components/profile/voucher-metrics";
 import VoucherTable from "@/components/profile/voucher-table";
@@ -14,6 +13,7 @@ import {
   where,
   getDocs,
 } from "firebase/firestore";
+import { notFound } from "next/navigation";
 
 // Define types inline to avoid import issues
 interface User {
@@ -49,6 +49,7 @@ async function getUserData(id: string) {
     const userDoc = await getDoc(doc(db, "users", id));
 
     if (!userDoc.exists()) {
+      console.log("User document does not exist");
       return null;
     }
 
@@ -97,6 +98,8 @@ async function getUserData(id: string) {
       });
     }
 
+    console.log("Vouchers fetched:", userVouchers.length);
+
     return {
       user: userData,
       vouchers: userVouchers,
@@ -120,7 +123,9 @@ function calculateVoucherMetrics(vouchers: Voucher[] = []) {
   };
 }
 
-export default async function UserProfilePage({ params }: { params: any }) {
+export default async function UserProfilePage({ params }: any) {
+  console.log("Rendering UserProfilePage for ID:", params.id);
+
   // Fetch user data directly from Firestore
   const data = await getUserData(params.id);
 
@@ -129,6 +134,7 @@ export default async function UserProfilePage({ params }: { params: any }) {
   }
 
   const { user, vouchers } = data;
+  console.log("User data:", user);
 
   // Calculate metrics
   const metrics = calculateVoucherMetrics(vouchers);
@@ -136,7 +142,7 @@ export default async function UserProfilePage({ params }: { params: any }) {
   return (
     <div className="container max-w-[90vw] mt-18 mx-auto py-6 space-y-8">
       {/* User Profile Header */}
-      <UserProfileHeader user={user} />
+      {user && <UserProfileHeader user={user} />}
 
       <Separator className="my-8" />
 

@@ -58,7 +58,7 @@ export default function Admin() {
 
   return (
     <>
-      <div className="hidden h-full flex-1 flex-col space-y-2 px-8 py-4 md:flex">
+      <div className="hidden h-full flex-1 flex-col mt-20 space-y-2 px-8 py-4 md:flex">
         <div className="flex items-center justify-between space-y-2">
           <div>
             <h2 className="text-xl font-bold tracking-tight">
@@ -71,8 +71,11 @@ export default function Admin() {
           </div>
           <div className="flex items-center space-x-2">
             <Button
+              variant="outline"
               className={
-                isAnimating ? "bg-green-400 " : "bg-black cursor-pointer"
+                isAnimating
+                  ? "bg-green-400 text-white"
+                  : "border-[#f04d46] text-[#f04d46] group cursor-pointer"
               }
               onClick={() => handleRefetchData("issues")}
             >

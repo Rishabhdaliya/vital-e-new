@@ -2,14 +2,16 @@ import React from "react";
 
 const SyncIcon = ({ isAnimating }) => {
   return (
-    <div className="rounded-full text-white">
+    <div className="rounded-full text-white group hover:fill-white">
       <svg
         xmlns="http://www.w3.org/2000/svg"
         xmlnsXlink="http://www.w3.org/1999/xlink"
         viewBox="0 0 48 48"
         width="48px"
         height="48px"
-        className={`w-3 h-3 fill-current  ${isAnimating ? "animate-spin" : ""}`}
+        className={`w-3 h-3 fill-[#f04d46] group-hover:fill-white ${
+          isAnimating ? "animate-spin fill-white" : "fill-[#f04d46]"
+        }`}
       >
         <g>
           <path d="M7.77,28.911c-0.289,0-0.565-0.125-0.756-0.345L0.465,21.01c-0.361-0.418-0.316-1.049,0.101-1.411 c0.418-0.361,1.048-0.316,1.411,0.101l5.676,6.55l4.697-7.284c0.3-0.465,0.918-0.596,1.383-0.299 c0.464,0.3,0.598,0.919,0.299,1.383L8.61,28.453c-0.171,0.265-0.456,0.434-0.771,0.455C7.816,28.91,7.793,28.911,7.77,28.911z" />

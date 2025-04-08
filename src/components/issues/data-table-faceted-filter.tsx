@@ -65,7 +65,7 @@ export function DataTableFacetedFilter<TData, TValue>({
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button variant="outline" size="sm" className="h-8 border-dashed">
+        <Button variant="default" size="sm" className="h-8 border-dashed">
           <PlusCircledIcon className="mr-2 h-4 w-4" />
           {title}
           {selectedValues.size > 0 && (
@@ -103,14 +103,17 @@ export function DataTableFacetedFilter<TData, TValue>({
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[200px] p-0" align="start">
+      <PopoverContent
+        className="w-[200px] bg-white border-gray-200  p-0"
+        align="start"
+      >
         <Command>
           <CommandInput placeholder={title} />
           <CommandList>
             <CommandEmpty>No results found.</CommandEmpty>
             <CommandGroup>
               <CommandItem onSelect={handleSelectAll}>
-                <div className="mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary">
+                <div className="mr-2 flex h-4 w-4  items-center justify-center rounded-sm border border-primary">
                   {selectedValues.size === options.length && (
                     <CheckIcon className="h-4 w-4" />
                   )}
@@ -124,7 +127,7 @@ export function DataTableFacetedFilter<TData, TValue>({
                 >
                   <div
                     className={cn(
-                      "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary",
+                      "mr-2 flex h-4 w-4 bg-white items-center justify-center rounded-sm border border-primary",
                       selectedValues.has(option.value)
                         ? "bg-primary text-primary-foreground"
                         : "opacity-50 [&_svg]:invisible"

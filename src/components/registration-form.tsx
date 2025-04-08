@@ -46,10 +46,10 @@ export function RegistrationForm({
     >
       <Card>
         <CardHeader>
-          <CardTitle className="text-xl text-black text-center">
+          <CardTitle className="text-xl text-[#f04d46] text-center">
             {heading}
           </CardTitle>
-          <CardDescription className="text-center">
+          <CardDescription className="text-center text-gray-500 dark:text-gray-100">
             Enter your details below for registration.
           </CardDescription>
         </CardHeader>
@@ -114,7 +114,7 @@ export function RegistrationForm({
                   <OTPForm phoneNumber={"7066612777"} />
                 </div> */}
                 <div className="flex flex-col gap-3">
-                  <Button type="submit" className="w-full bg-black text-white">
+                  <Button type="submit" variant="filled">
                     Register
                   </Button>
                 </div>

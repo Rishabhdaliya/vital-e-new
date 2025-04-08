@@ -11,7 +11,6 @@ import {
   ChevronLeft,
   ChevronRight,
   Pencil,
-  Trash2,
   AlertTriangle,
 } from "lucide-react";
 import {
@@ -48,12 +47,14 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   useGetProductsQuery,
   useAddProductMutation,
   useUpdateProductMutation,
   useDeleteProductMutation,
 } from "@/redux/features/products/productApi";
+import { getProductStatus, getStatusColor } from "@/lib/utils";
 
 // Define interfaces for our data structures
 interface Product {
@@ -231,45 +232,45 @@ export default function ProductsPage() {
   };
 
   // Handle delete button click
-  // const handleDeleteClick = (product: Product) => {
-  //   setProductToDelete(product);
-  //   setIsDeleteDialogOpen(true);
-  // };
+  const handleDeleteClick = (product: Product) => {
+    setProductToDelete(product);
+    setIsDeleteDialogOpen(true);
+  };
 
   // Handle confirm delete
-  // const handleConfirmDelete = async () => {
-  //   if (!productToDelete) return;
+  const handleConfirmDelete = async () => {
+    if (!productToDelete) return;
 
-  //   try {
-  //     await deleteProduct(productToDelete.id).unwrap();
+    try {
+      await deleteProduct(productToDelete.id).unwrap();
 
-  //     toast({
-  //       title: "Success!",
-  //       description: "Product has been deleted successfully.",
-  //     });
+      toast({
+        title: "Success!",
+        description: "Product has been deleted successfully.",
+      });
 
-  //     // Close dialog and reset state
-  //     setIsDeleteDialogOpen(false);
-  //     setProductToDelete(null);
+      // Close dialog and reset state
+      setIsDeleteDialogOpen(false);
+      setProductToDelete(null);
 
-  //     // If we deleted the last item on the current page, go to previous page
-  //     if (products.length === 1 && currentPage > 1) {
-  //       setCurrentPage(currentPage - 1);
-  //     } else {
-  //       // Refetch products list
-  //       refetch();
-  //     }
-  //   } catch (error: any) {
-  //     console.error("Error deleting product:", error);
-  //     toast({
-  //       title: "Error",
-  //       description: `Failed to delete product: ${
-  //         error.message || "Unknown error"
-  //       }`,
-  //       variant: "destructive",
-  //     });
-  //   }
-  // };
+      // If we deleted the last item on the current page, go to previous page
+      if (products.length === 1 && currentPage > 1) {
+        setCurrentPage(currentPage - 1);
+      } else {
+        // Refetch products list
+        refetch();
+      }
+    } catch (error: any) {
+      console.error("Error deleting product:", error);
+      toast({
+        title: "Error",
+        description: `Failed to delete product: ${
+          error.message || "Unknown error"
+        }`,
+        variant: "destructive",
+      });
+    }
+  };
 
   // Handle dialog close
   const handleDialogOpenChange = (open: boolean) => {
@@ -353,6 +354,7 @@ export default function ProductsPage() {
         <h1 className="text-2xl font-bold">Products</h1>
         <div className="flex gap-2">
           <Button
+            variant="outline"
             onClick={() => {
               setEditingProduct(null);
               formik.resetForm();
@@ -364,7 +366,7 @@ export default function ProductsPage() {
         </div>
       </div>
 
-      <div className="bg-white rounded-lg border shadow-sm p-6">
+      <>
         <div className="flex flex-col md:flex-row gap-4 mb-6">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
@@ -378,7 +380,7 @@ export default function ProductsPage() {
             />
           </div>
 
-          {/* <div className="flex gap-2 flex-wrap">
+          <div className="flex gap-2 flex-wrap">
             <div className="w-40">
               <Select
                 value={itemsPerPage.toString()}
@@ -397,57 +399,60 @@ export default function ProductsPage() {
                 </SelectContent>
               </Select>
             </div>
-          </div> */}
+          </div>
         </div>
 
-        <div className="overflow-x-auto border rounded-sm">
+        <div className="overflow-x-auto">
           <Table>
             <TableHeader>
-              <TableRow className="bg-gray-200">
-                <TableHead>Product ID</TableHead>
+              <TableRow>
                 <TableHead>Product Name</TableHead>
                 <TableHead>Quantity</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {isLoadingProducts ? (
-                <TableRow>
-                  <TableCell colSpan={4} className="text-center py-8">
-                    <div className="flex justify-center items-center">
-                      <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ) : products.length > 0 ? (
-                products.map((product: any) => (
-                  <TableRow key={product.id}>
-                    <TableCell className="font-medium">
-                      {product.id.substring(0, 12)}...
-                    </TableCell>
-                    <TableCell>{product.name}</TableCell>
-                    <TableCell>{product.quantity}</TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleEditProduct(product)}
-                        >
-                          <Pencil className="h-4 w-4 " />
-                          Edit
-                        </Button>
-                        {/* <Button
-                          size="sm"
-                          onClick={() => handleDeleteClick(product)}
-                        >
-                          <Trash2 className="h-4 w-4 " />
-                          Delete
-                        </Button> */}
-                      </div>
-                    </TableCell>
+                Array.from({ length: 10 }).map((_, idx) => (
+                  <TableRow key={idx} className="skeleton-row">
+                    {Array.from({ length: 4 }).map((_, columnIdx) => (
+                      <TableCell key={columnIdx}>
+                        <Skeleton className="h-4 bg-gray-200 w-full" />
+                      </TableCell>
+                    ))}
                   </TableRow>
                 ))
+              ) : products.length > 0 ? (
+                products.map((product: any) => {
+                  const status = getProductStatus(product.quantity);
+                  const statusColor = getStatusColor(status);
+
+                  return (
+                    <TableRow key={product.id}>
+                      <TableCell>{product.name}</TableCell>
+                      <TableCell>{product.quantity}</TableCell>
+                      <TableCell>
+                        <span
+                          className={`px-2 py-1 rounded-full text-xs font-medium ${statusColor}`}
+                        >
+                          {status}
+                        </span>
+                      </TableCell>
+                      <TableCell align="center">
+                        <div className="flex justify-center gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleEditProduct(product)}
+                          >
+                            Update
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })
               ) : (
                 <TableRow>
                   <TableCell
@@ -496,7 +501,7 @@ export default function ProductsPage() {
                       }
                       className={`px-3 py-1 rounded-md ${
                         currentPage === number
-                          ? "bg-primary text-white"
+                          ? "bg-gray-200 text-black"
                           : "hover:bg-gray-100"
                       }`}
                     >
@@ -520,11 +525,11 @@ export default function ProductsPage() {
             </div>
           </div>
         )}
-      </div>
+      </>
 
       {/* Product Form Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={handleDialogOpenChange}>
-        <DialogContent>
+        <DialogContent className="bg-white">
           <DialogHeader>
             <DialogTitle>
               {editingProduct ? "Update Product" : "Add New Product"}
@@ -569,6 +574,7 @@ export default function ProductsPage() {
 
             <DialogFooter>
               <Button
+                variant="outline"
                 type="submit"
                 disabled={isAddingProduct || isUpdatingProduct}
               >
@@ -586,7 +592,7 @@ export default function ProductsPage() {
       </Dialog>
 
       {/* Delete Confirmation Dialog */}
-      {/* <AlertDialog
+      <AlertDialog
         open={isDeleteDialogOpen}
         onOpenChange={setIsDeleteDialogOpen}
       >
@@ -614,7 +620,7 @@ export default function ProductsPage() {
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
-      </AlertDialog> */}
+      </AlertDialog>
     </div>
   );
 }

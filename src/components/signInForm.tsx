@@ -228,7 +228,12 @@ export default function SignInPage() {
 
               <div id="recaptcha-container" className="mt-4"></div>
 
-              <Button type="submit" className="w-full h-11" disabled={loading}>
+              <Button
+                type="submit"
+                variant="outline"
+                className="w-full h-11"
+                disabled={loading}
+              >
                 {loading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -269,6 +274,7 @@ export default function SignInPage() {
               </div>
 
               <Button
+                variant="filled"
                 onClick={verifyOTP}
                 className="w-full h-11"
                 disabled={loading}

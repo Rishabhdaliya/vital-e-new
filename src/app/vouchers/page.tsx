@@ -26,7 +26,7 @@ function BulkUploadDialog() {
       <DialogTrigger asChild>
         <Button variant="outline">Bulk Upload Voucher</Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="bg-white sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Bulk Upload Voucher</DialogTitle>
         </DialogHeader>
@@ -40,37 +40,23 @@ export default function VouchersPage() {
   const { data: vouchers, error, isLoading } = useGetVouchersQuery("");
   const { toast } = useToast();
 
-  if (isLoading) {
-    return <TableSkeleton />;
-  }
-
   if (error) {
     toast({ title: "Error", description: "Failed to load vouchers." });
     return null;
   }
 
-  if (!vouchers) {
+  if (!vouchers && error) {
     notFound();
   }
 
   return (
     <div className="container mx-auto mt-20 py-6 px-4">
       <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Vouchers</h1>
+        <h1 className="text-[#f04d46] text-2xl font-bold">Vouchers</h1>
         <BulkUploadDialog />
       </div>
-      <Suspense fallback={<TableSkeleton />}>
-        <VoucherTable vouchers={vouchers?.data || []} />
-      </Suspense>
-    </div>
-  );
-}
 
-function TableSkeleton() {
-  return (
-    <div className="space-y-4">
-      <Skeleton className="h-10 w-full" />
-      <Skeleton className="h-96 w-full" />
+      <VoucherTable isLoading={isLoading} vouchers={vouchers?.data || []} />
     </div>
   );
 }

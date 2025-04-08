@@ -360,6 +360,7 @@ export default function VoucherGenerator() {
 
         <Button
           type="submit"
+          variant="outline"
           className="w-full"
           disabled={
             isGenerating || isLoadingProducts || products.data.length === 0

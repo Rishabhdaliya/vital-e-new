@@ -35,15 +35,15 @@ export function AutoSearch({ cities, onSelect }: AutoSearchProps) {
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className="w-full justify-between"
+          className="w-full justify-between bg-white"
         >
           {value || "Select City..."}
           <ChevronsUpDown className="opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="p-0">
+      <PopoverContent className="p-0 bg-white">
         <Command>
-          <CommandInput placeholder="Search city..." className="h-9" />
+          <CommandInput placeholder="Search city..." className="h-9 " />
           <CommandList>
             <CommandEmpty>No city found.</CommandEmpty>
             <CommandGroup>
