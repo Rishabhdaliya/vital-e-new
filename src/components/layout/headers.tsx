@@ -130,7 +130,7 @@ export default function Navbar() {
               >
                 <MenuItem>
                   <Link
-                    href="#"
+                    href={"/profile/2gp8vj0XCK7OgfhTywnP"}
                     className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 data-focus:bg-gray-100 dark:data-focus:bg-gray-700 data-focus:outline-hidden"
                   >
                     Your Profile
