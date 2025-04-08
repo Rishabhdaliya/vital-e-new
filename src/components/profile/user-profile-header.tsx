@@ -22,7 +22,6 @@ export default function UserProfileHeader({ user }: UserProfileHeaderProps) {
   const city = user?.city || "NA";
   const phoneNo = user?.phoneNo || "NA";
   const verified = user?.isVerified !== undefined ? user.isVerified : true;
-  console.log(user);
 
   return (
     <Card>
@@ -41,7 +40,7 @@ export default function UserProfileHeader({ user }: UserProfileHeaderProps) {
 
           <div className="space-y-2 text-center md:text-left">
             <div className="space-y-1">
-              <h1 className="text-2xl font-bold">{user.name}</h1>
+              <h1 className="text-2xl text-[#f04d46] font-bold">{user.name}</h1>
               <div className="flex items-center justify-center md:justify-start gap-2 text-muted-foreground">
                 <Phone className="h-4 w-4" />
                 <span>{phoneNo}</span>

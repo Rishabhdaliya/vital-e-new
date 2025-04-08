@@ -32,7 +32,6 @@ export function AutoSearch({ cities, onSelect }: AutoSearchProps) {
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button
-          variant="outline"
           role="combobox"
           aria-expanded={open}
           className="w-full justify-between bg-white"

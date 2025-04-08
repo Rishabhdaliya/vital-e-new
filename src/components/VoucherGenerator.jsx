@@ -27,8 +27,6 @@ export default function VoucherGenerator() {
   const { data: products = [], isLoading: isLoadingProducts } =
     useGetAllProductsQuery();
 
-  console.log(products);
-
   // Function to generate a barcode from batch number
   // This is a simple implementation - in production you might use a proper barcode library
   const generateBarcode = (batchNo) => {

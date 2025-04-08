@@ -1,5 +1,5 @@
 import { api } from "../../api";
-import { setUsers, updateUser, setUsersLoaded } from "./usersSlice";
+import { updateUsers, setUsers, setUsersLoaded } from "./usersSlice";
 
 export const usersApi = api.injectEndpoints({
   endpoints: (builder) => ({
@@ -22,15 +22,43 @@ export const usersApi = api.injectEndpoints({
       },
     }),
     getUserById: builder.query({
-      query: ({ id }) => ({
+      query: (id) => ({
         url: `/api/users/${id}`,
         method: "GET",
       }),
-      async onQueryStarted({ userId }, { dispatch, queryFulfilled }) {
+      async onQueryStarted(id, { dispatch, queryFulfilled }) {
         try {
-          const { data } = await queryFulfilled; // Get the response from the mutation
+          const { data } = await queryFulfilled;
           // Dispatch an action to update the specific user in the Redux state
-          dispatch(updateUser({ userId, updatedUser: data.data }));
+          dispatch(updateUsers({ usersId: id, updatedUsers: data.data }));
+        } catch (error) {
+          console.error("Failed to get user:", error);
+        }
+      },
+    }),
+    updateUserData: builder.mutation({
+      query: ({ id, userData }) => ({
+        url: `/api/users/${id}`,
+        method: "PUT",
+        body: userData,
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }),
+      async onQueryStarted({ id, userData }, { dispatch, queryFulfilled }) {
+        try {
+          const { data } = await queryFulfilled;
+          console.log("API response:", data);
+
+          // Dispatch updateUsers action with the correct payload structure
+          dispatch(
+            updateUsers({
+              usersId: id,
+              updatedUsers: data.data || userData, // Use response data if available, fallback to request data
+            })
+          );
+
+          console.log("Dispatched updateUsers action");
         } catch (error) {
           console.error("Failed to update user:", error);
         }
@@ -40,31 +68,18 @@ export const usersApi = api.injectEndpoints({
       query: (newUserPayload) => ({
         url: `/api/users`,
         method: "POST",
-        body: JSON.stringify(newUserPayload),
+        body: newUserPayload,
+        headers: {
+          "Content-Type": "application/json",
+        },
       }),
       async onQueryStarted(arg, { dispatch, queryFulfilled }) {
         try {
-          const { data } = await queryFulfilled; // Get the response from the mutation
+          const { data } = await queryFulfilled;
           // Optionally, you can dispatch an action to add the new user to the Redux state
           dispatch(setUsers(data.data));
         } catch (error) {
           console.error("Failed to add user:", error);
-        }
-      },
-    }),
-    updateUsers: builder.mutation({
-      query: ({ userId, updatedUserPayload }) => ({
-        url: `/api/users/${userId}`,
-        method: "PUT",
-        body: JSON.stringify(updatedUserPayload),
-      }),
-      async onQueryStarted({ userId }, { dispatch, queryFulfilled }) {
-        try {
-          const { data } = await queryFulfilled; // Get the response from the mutation
-          // Dispatch an action to update the specific user in the Redux state
-          dispatch(updateUser({ userId, updatedUser: data.data }));
-        } catch (error) {
-          console.error("Failed to update user:", error);
         }
       },
     }),
@@ -75,6 +90,6 @@ export const usersApi = api.injectEndpoints({
 export const {
   useGetUsersQuery,
   useGetUserByIdQuery,
-  useUpdateUsersMutation,
+  useUpdateUserDataMutation,
   useAddUserMutation,
 } = usersApi;

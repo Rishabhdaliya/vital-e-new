@@ -11,7 +11,6 @@ import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -22,14 +21,15 @@ import {
   InputOTPSlot,
   InputOTPSeparator,
 } from "@/components/ui/input-otp";
-import { Loader2, ArrowRight, Phone } from "lucide-react";
+import { Loader2, ArrowRight } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
 import { useDispatch } from "react-redux";
 import { setCurrentUser } from "@/redux/features/users/usersSlice";
 import { auth, db } from "@/lib/firebase/config";
 
-export default function SignInPage() {
+// Add a skipOtp prop to the component
+export default function SignInForm({ skipOtp = false }) {
   const [step, setStep] = useState<"phone" | "otp">("phone");
   const [otp, setOtp] = useState("");
   const [loading, setLoading] = useState(false);
@@ -47,6 +47,7 @@ export default function SignInPage() {
         size: "normal",
         callback: () => {
           // reCAPTCHA solved, allow signInWithPhoneNumber.
+          return undefined; // Ensure no string is returned
         },
       }
     );
@@ -59,7 +60,7 @@ export default function SignInPage() {
       .required("Phone number is required"),
   });
 
-  // Formik setup
+  // Modify the onSubmit function to handle skipOtp
   const formik = useFormik({
     initialValues: {
       phoneNo: "",
@@ -87,7 +88,40 @@ export default function SignInPage() {
           return;
         }
 
-        // Setup reCAPTCHA
+        // If skipOtp is true, bypass OTP verification
+        if (skipOtp) {
+          // Get user data directly
+          const userDoc = userSnapshot.docs[0];
+          const userData = userDoc.data();
+
+          // Store user data in Redux
+          const user = {
+            id: userDoc.id,
+            ...userData,
+          };
+
+          // Dispatch action to store user in Redux
+          dispatch(setCurrentUser(user));
+
+          // Store user ID in localStorage for persistence
+          localStorage.setItem("userId", userDoc.id);
+
+          toast({
+            title: "Sign In Successful",
+            description: "You have been signed in successfully.",
+          });
+
+          // Redirect based on user role
+
+          if (userData.role === "ADMIN") {
+            router.push("/admin");
+          } else {
+            router.push("/");
+          }
+          return;
+        }
+
+        // Normal OTP flow if skipOtp is false
         setupRecaptcha();
 
         // Send OTP
@@ -152,7 +186,6 @@ export default function SignInPage() {
           id: userDoc.id,
           ...userData,
         };
-        console.log(user);
 
         // Dispatch action to store user in Redux
         dispatch(setCurrentUser(user));
@@ -230,19 +263,19 @@ export default function SignInPage() {
 
               <Button
                 type="submit"
-                variant="outline"
+                variant="filled"
                 className="w-full h-11"
                 disabled={loading}
               >
                 {loading ? (
                   <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    <Loader2 className="mr-1 h-4 w-4 animate-spin" />
                     Sending OTP...
                   </>
                 ) : (
                   <>
-                    Continue
-                    <ArrowRight className="ml-2 h-4 w-4" />
+                    Sign In
+                    <ArrowRight className=" h-4 w-4" />
                   </>
                 )}
               </Button>
@@ -274,7 +307,7 @@ export default function SignInPage() {
               </div>
 
               <Button
-                variant="filled"
+                variant="outline"
                 onClick={verifyOTP}
                 className="w-full h-11"
                 disabled={loading}

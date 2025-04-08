@@ -11,7 +11,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
-import { useUpdateUsersMutation } from "@/redux/features/users/usersApi";
+import { useUpdateUserDataMutation } from "@/redux/features/users/usersApi";
 import { User } from "../types/schema";
 
 interface DataTableUsersOptionsProps {
@@ -19,7 +19,7 @@ interface DataTableUsersOptionsProps {
 }
 
 export function DataTableUserAvailable({ users }: DataTableUsersOptionsProps) {
-  const [updateUsers] = useUpdateUsersMutation();
+  const [updateUsers] = useUpdateUserDataMutation();
 
   return (
     <DropdownMenu>

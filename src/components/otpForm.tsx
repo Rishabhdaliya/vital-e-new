@@ -47,11 +47,9 @@ export function OTPForm({ phoneNumber }: OTPFormProps) {
         {
           size: "invisible", // Use "invisible" for better UX
           callback: (response: any) => {
-            console.log("reCAPTCHA verified:", response);
             setRecaptchaLoaded(true);
           },
           "expired-callback": () => {
-            console.log("reCAPTCHA expired");
             setRecaptchaLoaded(false);
             resetRecaptcha();
           },
@@ -101,7 +99,6 @@ export function OTPForm({ phoneNumber }: OTPFormProps) {
         : `+91${phoneNumber}`;
 
       const recaptchaToken = await window.recaptchaVerifier.verify(); // Explicit verification
-      console.log("reCAPTCHA token:", recaptchaToken);
 
       const confirmation = await signInWithPhoneNumber(
         auth,

@@ -4,7 +4,7 @@ import React from "react";
 const SignIn = () => {
   return (
     <div>
-      <SignInForm />
+      <SignInForm skipOtp={process.env.NEXT_PUBLIC_SKIP_OTP !== "true"} />
     </div>
   );
 };
