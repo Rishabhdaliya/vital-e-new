@@ -54,6 +54,7 @@ import {
   useUpdateProductMutation,
   useDeleteProductMutation,
 } from "@/redux/features/products/productApi";
+import { Skeleton } from "@/components/ui/skeleton";
 
 // Define interfaces for our data structures
 interface Product {
@@ -391,13 +392,15 @@ export default function ProductsPage() {
             </TableHeader>
             <TableBody>
               {isLoadingProducts ? (
-                <TableRow>
-                  <TableCell colSpan={4} className="text-center py-8">
-                    <div className="flex justify-center items-center">
-                      <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
-                    </div>
-                  </TableCell>
-                </TableRow>
+                Array.from({ length: 10 }).map((_, idx) => (
+                  <TableRow key={idx} className="skeleton-row">
+                    {Array.from({ length: 3 }).map((_, columnIdx) => (
+                      <TableCell key={columnIdx}>
+                        <Skeleton className="h-4 bg-gray-200 w-full" />
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))
               ) : products.length > 0 ? (
                 products.map((product: any) => (
                   <TableRow key={product.id}>
