@@ -73,7 +73,7 @@ interface FormValues {
   isVerified: boolean;
 }
 
-export default function ProfilePage({ params }: { params: { id: string } }) {
+export default function ProfilePage({ params }: any) {
   const { toast } = useToast();
   const dispatch = useDispatch();
   const [currentUser, setCurrentUser] = useState<User | null>(null);
@@ -84,11 +84,13 @@ export default function ProfilePage({ params }: { params: { id: string } }) {
   // Fetch user data
   useEffect(() => {
     const fetchUser = async () => {
-      if (!params.id) return;
+      const { id } = await params;
+
+      if (!id) return;
 
       try {
         setIsLoading(true);
-        const userDoc = await getDoc(doc(db, "users", params.id));
+        const userDoc = await getDoc(doc(db, "users", params?.id));
 
         if (!userDoc.exists()) {
           return;
@@ -113,7 +115,7 @@ export default function ProfilePage({ params }: { params: { id: string } }) {
     };
 
     fetchUser();
-  }, [params.id, toast]);
+  }, [params, toast]);
 
   // Initialize formik
   const formik = useFormik<FormValues>({

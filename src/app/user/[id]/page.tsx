@@ -123,11 +123,7 @@ function calculateVoucherMetrics(vouchers: Voucher[] = []) {
   };
 }
 
-export default async function UserProfilePage({
-  params,
-}: {
-  params: { id: string };
-}) {
+export default async function UserProfilePage({ params }: any) {
   console.log("Rendering UserProfilePage for ID:", params.id);
 
   // Fetch user data directly from Firestore
