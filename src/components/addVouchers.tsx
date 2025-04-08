@@ -51,7 +51,6 @@ export function VoucherForm({
             }}
             validationSchema={validationSchema}
             onSubmit={(values) => {
-              console.log("here", values);
               handleVoucherForm({
                 ...values,
                 status: "UNCLAIMED",

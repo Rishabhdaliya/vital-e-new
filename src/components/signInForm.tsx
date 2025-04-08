@@ -112,7 +112,6 @@ export default function SignInForm({ skipOtp = false }) {
           });
 
           // Redirect based on user role
-          console.log("userDatau", userData.role);
 
           if (userData.role === "ADMIN") {
             router.push("/admin");
@@ -187,7 +186,6 @@ export default function SignInForm({ skipOtp = false }) {
           id: userDoc.id,
           ...userData,
         };
-        console.log(user);
 
         // Dispatch action to store user in Redux
         dispatch(setCurrentUser(user));
@@ -265,19 +263,19 @@ export default function SignInForm({ skipOtp = false }) {
 
               <Button
                 type="submit"
-                variant="outline"
+                variant="filled"
                 className="w-full h-11"
                 disabled={loading}
               >
                 {loading ? (
                   <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    <Loader2 className="mr-1 h-4 w-4 animate-spin" />
                     Sending OTP...
                   </>
                 ) : (
                   <>
-                    Continue
-                    <ArrowRight className="ml-2 h-4 w-4" />
+                    Sign In
+                    <ArrowRight className=" h-4 w-4" />
                   </>
                 )}
               </Button>

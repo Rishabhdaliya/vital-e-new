@@ -70,8 +70,6 @@ function generateUniqueBatchNo() {
 }
 
 export async function POST(request) {
-  console.log("POST request received for bulk voucher generation");
-
   try {
     const body = await request.json();
     const { count } = body;
@@ -84,7 +82,6 @@ export async function POST(request) {
     }
 
     // Step 1: Check the count from the request
-    console.log(`Generating ${count} vouchers`);
 
     // Step 2: Call the voucher generator function to generate vouchers
     const vouchers = generateVouchers(count);
@@ -121,7 +118,6 @@ export async function POST(request) {
           if (!checkResult.exists) {
             isUnique = true;
           } else {
-            console.log(`Duplicate ${checkResult.field} found, retrying...`);
             attempts++;
           }
         }
@@ -157,9 +153,6 @@ export async function POST(request) {
       }
 
       await batch.commit();
-      console.log(
-        `Successfully saved ${processedVouchers.length} vouchers to Firestore`
-      );
     } catch (firestoreError) {
       console.error("Error saving vouchers to Firestore:", firestoreError);
       // Continue and return the generated vouchers even if Firestore save fails

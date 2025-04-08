@@ -22,7 +22,6 @@ export default function UserProfileHeader({ user }: UserProfileHeaderProps) {
   const city = user?.city || "NA";
   const phoneNo = user?.phoneNo || "NA";
   const verified = user?.isVerified !== undefined ? user.isVerified : true;
-  console.log(user);
 
   return (
     <Card>

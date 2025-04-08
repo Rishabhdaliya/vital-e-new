@@ -40,9 +40,7 @@ export async function PUT(req, { params }) {
     // Perform the update
     try {
       await updateDoc(userRef, updateData);
-      console.log("Users Document updated successfully");
     } catch (updateError) {
-      console.error("Error updating document:", updateError);
       return NextResponse.json(
         {
           message: "Error updating user document",
@@ -56,7 +54,6 @@ export async function PUT(req, { params }) {
     let updatedUserDoc;
     try {
       updatedUserDoc = await getDoc(userRef);
-      console.log("Fetched updated document:", updatedUserDoc.data());
     } catch (fetchError) {
       console.error("Error fetching document:", fetchError);
       return NextResponse.json(

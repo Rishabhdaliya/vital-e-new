@@ -49,7 +49,6 @@ async function getUserData(id: string) {
     const userDoc = await getDoc(doc(db, "users", id));
 
     if (!userDoc.exists()) {
-      console.log("User document does not exist");
       return null;
     }
 
@@ -98,8 +97,6 @@ async function getUserData(id: string) {
       });
     }
 
-    console.log("Vouchers fetched:", userVouchers.length);
-
     return {
       user: userData,
       vouchers: userVouchers,
@@ -124,8 +121,6 @@ function calculateVoucherMetrics(vouchers: Voucher[] = []) {
 }
 
 export default async function UserProfilePage({ params }: any) {
-  console.log("Rendering UserProfilePage for ID:", params.id);
-
   // Fetch user data directly from Firestore
   const data = await getUserData(params.id);
 
@@ -134,7 +129,6 @@ export default async function UserProfilePage({ params }: any) {
   }
 
   const { user, vouchers } = data;
-  console.log("User data:", user);
 
   // Calculate metrics
   const metrics = calculateVoucherMetrics(vouchers);

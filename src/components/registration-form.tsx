@@ -64,7 +64,6 @@ export function RegistrationForm({
             }}
             validationSchema={validationSchema}
             onSubmit={(values) => {
-              console.log("here", values);
               handleRegistrationForm({
                 ...values,
                 isVerified: false,
