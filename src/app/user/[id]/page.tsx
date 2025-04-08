@@ -2,18 +2,19 @@ import { Suspense } from "react";
 import UserProfileHeader from "@/components/profile/user-profile-header";
 import VoucherMetrics from "@/components/profile/voucher-metrics";
 import VoucherTable from "@/components/profile/voucher-table";
+import RegisteredByInfo from "@/components/profile/registered-by-user-info";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
+import { notFound } from "next/navigation";
 import { db } from "@/lib/firebase/config";
 import {
-  doc,
-  getDoc,
   collection,
   query,
   where,
   getDocs,
+  doc,
+  getDoc,
 } from "firebase/firestore";
-import { notFound } from "next/navigation";
 
 // Define types inline to avoid import issues
 interface User {
@@ -23,11 +24,13 @@ interface User {
   city: string;
   isVerified: boolean;
   vouchers: string[];
-  role: "CUSTOMER" | "RETAILER";
+  role: "CUSTOMER" | "RETAILER" | "DEALER";
   createdAt: {
     seconds: number;
     nanoseconds: number;
   };
+  registeredBy?: string;
+  registeredByUser?: User;
 }
 
 interface Voucher {
@@ -42,23 +45,35 @@ interface Voucher {
   productName?: string;
 }
 
-// Fetch user data directly from Firestore
+// Fetch user data from API
 async function getUserData(id: string) {
   try {
-    // Get user document
-    const userDoc = await getDoc(doc(db, "users", id));
+    // Use absolute URL with origin for server-side fetching
+    const origin =
+      typeof window === "undefined"
+        ? process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"
+        : window.location.origin;
 
-    if (!userDoc.exists()) {
+    const response = await fetch(`${origin}/api/users/${id}`, {
+      cache: "no-store", // Disable caching to always get fresh data
+    });
+
+    if (!response.ok) {
+      console.error(`API error: ${response.status} ${response.statusText}`);
       return null;
     }
 
-    const userData = {
-      id: userDoc.id,
-      ...userDoc.data(),
-    } as User;
+    const apiData = await response.json();
+
+    if (!apiData.data) {
+      console.error("API returned no data");
+      return null;
+    }
+
+    const userData = apiData.data;
+    console.log("API user data:", userData);
 
     // Get vouchers for this user
-    const vouchersRef = collection(db, "vouchers");
     let userVouchers: Voucher[] = [];
 
     // If user has voucher IDs, fetch those vouchers
@@ -86,6 +101,7 @@ async function getUserData(id: string) {
       ) as Voucher[];
     } else {
       // If no voucher IDs, check for vouchers claimed by this user
+      const vouchersRef = collection(db, "vouchers");
       const voucherQuery = query(vouchersRef, where("claimedBy", "==", id));
       const voucherSnapshot = await getDocs(voucherQuery);
 
@@ -121,13 +137,15 @@ function calculateVoucherMetrics(vouchers: Voucher[] = []) {
 }
 
 export default async function UserProfilePage({ params }: any) {
-  // Fetch user data directly from Firestore
+  // Fetch user data from API
   const { id } = await params;
   const data = await getUserData(id);
 
   if (!data || !data.user) {
     notFound();
   }
+
+  console.log("User data:", data);
 
   const { user, vouchers } = data;
 
@@ -138,6 +156,11 @@ export default async function UserProfilePage({ params }: any) {
     <div className="container max-w-[90vw] mt-18 mx-auto py-6 space-y-8">
       {/* User Profile Header */}
       {user && <UserProfileHeader user={user} />}
+
+      {/* Registered By Info */}
+      {user.registeredByUser && (
+        <RegisteredByInfo registeredByUser={user.registeredByUser} />
+      )}
 
       <Separator className="my-8" />
 

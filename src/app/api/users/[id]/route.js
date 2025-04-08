@@ -93,6 +93,7 @@ export async function PUT(req, { params }) {
 }
 
 // GET handler to fetch a specific user
+// GET handler to fetch a specific user
 export async function GET(request, { params }) {
   try {
     // Await the params object to get the id
@@ -116,6 +117,30 @@ export async function GET(request, { params }) {
       id: userDoc.id,
       ...userDoc.data(),
     };
+
+    // Check if user is RETAILER or DEALER and has registeredBy field
+    if (
+      (userData.role === "RETAILER" || userData.role === "DEALER") &&
+      userData.registeredBy
+    ) {
+      try {
+        // Get the registeredBy user document
+        const registeredByDoc = await getDoc(
+          doc(db, "users", userData.registeredBy)
+        );
+
+        if (registeredByDoc.exists()) {
+          // Add registeredByUser data to the response
+          userData.registeredByUser = {
+            id: registeredByDoc.id,
+            ...registeredByDoc.data(),
+          };
+        }
+      } catch (registeredByError) {
+        console.error("Error fetching registeredBy user:", registeredByError);
+        // Continue without registeredBy data if there's an error
+      }
+    }
 
     return NextResponse.json({
       message: "User data retrieved successfully",

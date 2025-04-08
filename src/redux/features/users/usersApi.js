@@ -1,5 +1,5 @@
 import { api } from "../../api";
-import { updateUser, setUsers, setUsersLoaded } from "./usersSlice";
+import { updateUsers, setUsers, setUsersLoaded } from "./usersSlice";
 
 export const usersApi = api.injectEndpoints({
   endpoints: (builder) => ({
@@ -30,7 +30,7 @@ export const usersApi = api.injectEndpoints({
         try {
           const { data } = await queryFulfilled;
           // Dispatch an action to update the specific user in the Redux state
-          dispatch(updateUser({ userId: id, userData: data.data }));
+          dispatch(updateUsers({ usersId: id, updatedUsers: data.data }));
         } catch (error) {
           console.error("Failed to get user:", error);
         }
@@ -48,16 +48,17 @@ export const usersApi = api.injectEndpoints({
       async onQueryStarted({ id, userData }, { dispatch, queryFulfilled }) {
         try {
           const { data } = await queryFulfilled;
+          console.log("API response:", data);
 
-          //Todo: Dispatch updateUser action with the correct payload structure
+          // Dispatch updateUsers action with the correct payload structure
           dispatch(
-            updateUser({
-              userId: id,
-              userData: data.data || userData, // Use response data if available, fallback to request data
+            updateUsers({
+              usersId: id,
+              updatedUsers: data.data || userData, // Use response data if available, fallback to request data
             })
           );
 
-          console.log("Dispatched updateUser action");
+          console.log("Dispatched updateUsers action");
         } catch (error) {
           console.error("Failed to update user:", error);
         }
