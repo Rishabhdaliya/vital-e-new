@@ -20,6 +20,7 @@ import { MultiSelect } from "../ui/multiSelector";
 import { User } from "../types/schema";
 import Link from "next/link";
 import { calculateVoucherMetrics } from "@/lib/utils/utils";
+import { ActionCell } from "./ActionCell";
 export const columns: ColumnDef<Users>[] = [
   // {
   //   id: "select",
@@ -177,18 +178,15 @@ export const columns: ColumnDef<Users>[] = [
     enableHiding: false,
   },
   {
-    accessorKey: "id",
+    accessorKey: "actions",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="View" />
+      <DataTableColumnHeader column={column} title="Actions" />
     ),
-    cell: ({ row }) => (
-      <Link href={`/user/${row.getValue("id")}`}>
-        <span className="text-md text-[#f04d46] hover:bg-[#f04d46] hover:text-white border border-[#f04d46] p-2 rounded-sm cursor-pointer font-normal max-w-[500px] truncate ">
-          Update
-        </span>
-      </Link>
-    ),
-    enableSorting: false,
-    enableHiding: false,
+    id: "actions",
+    cell: ({ row }) => {
+      // Pass the ID to the ActionCell component
+      const userId = row.original.id;
+      return <ActionCell userId={userId} />;
+    },
   },
 ];

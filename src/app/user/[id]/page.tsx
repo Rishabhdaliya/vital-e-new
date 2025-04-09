@@ -49,10 +49,7 @@ interface Voucher {
 async function getUserData(id: string) {
   try {
     // Use absolute URL with origin for server-side fetching
-    const origin =
-      typeof window === "undefined"
-        ? process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"
-        : window.location.origin;
+    const origin = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
     const response = await fetch(`${origin}/api/users/${id}`, {
       cache: "no-store", // Disable caching to always get fresh data
@@ -144,8 +141,6 @@ export default async function UserProfilePage({ params }: any) {
   if (!data || !data.user) {
     notFound();
   }
-
-  console.log("User data:", data);
 
   const { user, vouchers } = data;
 
