@@ -15,7 +15,6 @@ import {
   doc,
   getDoc,
 } from "firebase/firestore";
-import { calculateVoucherMetrics } from "@/lib/utils/utils";
 
 // Define types inline to avoid import issues
 interface User {
@@ -46,40 +45,49 @@ interface Voucher {
   productName?: string;
 }
 
-// Fetch user data from API - separated from voucher fetching
+// Fetch user data directly from Firestore
 async function fetchUserData(id: string): Promise<User | null> {
   try {
-    // Create a complete URL for server-side fetching
-    // This ensures the URL is properly parsed
-    const baseUrl =
-      process.env.NEXT_PUBLIC_API_URL ||
-      (typeof window !== "undefined"
-        ? window.location.origin
-        : "http://localhost:3000");
+    console.log(`Fetching user data for ID: ${id} directly from Firestore`);
 
-    const url = new URL(`/api/users/${id}`, baseUrl).toString();
+    // Get the user document from Firestore
+    const userDoc = await getDoc(doc(db, "users", id));
 
-    console.log(`Fetching user data from: ${url}`);
-
-    const response = await fetch(url, {
-      cache: "no-store", // Disable caching to always get fresh data
-    });
-
-    if (!response.ok) {
-      console.error(`API error: ${response.status} ${response.statusText}`);
+    if (!userDoc.exists()) {
+      console.error("User not found in Firestore");
       return null;
     }
 
-    const apiData = await response.json();
+    // Create the user object
+    const userData = userDoc.data();
+    const user = {
+      id: userDoc.id,
+      ...userData,
+    } as User;
 
-    if (!apiData.data) {
-      console.error("API returned no data");
-      return null;
+    // If the user has a registeredBy field, fetch that user's data too
+    if (user.registeredBy) {
+      try {
+        const registeredByDoc = await getDoc(
+          doc(db, "users", user.registeredBy)
+        );
+
+        if (registeredByDoc.exists()) {
+          const registeredByData = registeredByDoc.data();
+          user.registeredByUser = {
+            id: registeredByDoc.id,
+            ...registeredByData,
+          } as User;
+        }
+      } catch (registeredByError) {
+        console.error("Error fetching registeredBy user:", registeredByError);
+        // Continue without registeredBy data if there's an error
+      }
     }
 
-    return apiData.data as User;
+    return user;
   } catch (error) {
-    console.error("Error fetching user data:", error);
+    console.error("Error fetching user data from Firestore:", error);
     return null;
   }
 }
@@ -130,11 +138,24 @@ async function fetchUserVouchers(
   }
 }
 
+// Calculate voucher metrics
+function calculateVoucherMetrics(vouchers: Voucher[] = []) {
+  const total = vouchers?.length || 0;
+  const claimed = vouchers?.filter((v) => v.status === "CLAIMED").length || 0;
+  const unclaimed = total - claimed;
+
+  return {
+    total,
+    claimed,
+    unclaimed,
+  };
+}
+
 export default async function UserProfilePage({ params }: any) {
   // Extract the user ID from params
-  const { id } = params;
+  const { id } = await params;
 
-  // Fetch user data
+  // Fetch user data directly from Firestore
   const user = await fetchUserData(id);
 
   if (!user) {
