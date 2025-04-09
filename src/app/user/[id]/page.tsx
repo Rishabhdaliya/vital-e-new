@@ -15,6 +15,7 @@ import {
   doc,
   getDoc,
 } from "firebase/firestore";
+import { calculateVoucherMetrics } from "@/lib/utils/utils";
 
 // Define types inline to avoid import issues
 interface User {
@@ -129,24 +130,7 @@ async function fetchUserVouchers(
   }
 }
 
-// Calculate voucher metrics
-function calculateVoucherMetrics(vouchers: Voucher[] = []) {
-  const total = vouchers?.length || 0;
-  const claimed = vouchers?.filter((v) => v.status === "CLAIMED").length || 0;
-  const unclaimed = total - claimed;
-
-  return {
-    total,
-    claimed,
-    unclaimed,
-  };
-}
-
-export default async function UserProfilePage({
-  params,
-}: {
-  params: { id: string };
-}) {
+export default async function UserProfilePage({ params }: any) {
   // Extract the user ID from params
   const { id } = params;
 
