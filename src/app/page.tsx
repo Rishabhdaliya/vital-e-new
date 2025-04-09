@@ -31,7 +31,7 @@ export default function HeroSection() {
     },
   };
 
-  const handeRoute = () => {
+  const handleRoute = () => {
     if (currentUser.role === "ADMIN" || currentUser.role === "DEALER") {
       router.push("/admin");
     } else if (currentUser.role === "RETAILER") {
@@ -89,10 +89,12 @@ export default function HeroSection() {
                 <Button
                   variant="filled"
                   size="lg"
-                  onClick={handeRoute}
+                  onClick={handleRoute}
                   className="group"
                 >
-                  {currentUser ? "Claim Voucher" : "Get Started"}
+                  {currentUser.role === "RETAILER"
+                    ? "Claim Voucher"
+                    : "Go To Dashboard"}
                   <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
                 </Button>
               ) : (

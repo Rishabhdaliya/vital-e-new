@@ -1,7 +1,7 @@
 // Define role-based access permissions
 export const rolePermissions = {
   ADMIN: ["*"], // Admin can access everything
-  DEALER: ["/retailer", "/dealer", "/admin", "/vouchers", "/products"],
+  DEALER: ["/retailer", "/user", "/dealer", "/admin", "/vouchers", "/products"],
   RETAILER: ["/retailer", "/vouchers", "/products"],
   CUSTOMER: ["/customer", "/vouchers", "/claim-voucher"],
 };

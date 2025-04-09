@@ -161,8 +161,7 @@ export default function ProductsPage() {
       .min(2, "Name must be at least 2 characters"),
     quantity: Yup.number()
       .required("Quantity is required")
-      .integer("Quantity must be a whole number")
-      .min(1, "Quantity must be at least 1"),
+      .integer("Quantity must be a whole number"),
   });
 
   // Form setup
@@ -468,7 +467,7 @@ export default function ProductsPage() {
         </div>
 
         {pagination.totalCount > 0 && (
-          <div className="mt-4 flex flex-col sm:flex-row justify-between items-center text-sm text-gray-500">
+          <div className="mt-4 flex flex-col sm:flex-row justify-between items-center text-sm text-muted-foreground">
             <div className="mb-4 sm:mb-0">
               Showing {(pagination.page - 1) * pagination.pageSize + 1}-
               {Math.min(
@@ -479,13 +478,13 @@ export default function ProductsPage() {
             </div>
 
             <div className="flex items-center flex-wrap justify-center gap-1">
-              <button
+              <Button
                 onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
                 disabled={currentPage === 1}
-                className="p-1 rounded-md hover:bg-gray-100 disabled:opacity-50"
+                size="sm"
               >
                 <ChevronLeft className="h-5 w-5" />
-              </button>
+              </Button>
 
               <div className="flex flex-wrap justify-center gap-1 max-w-[300px]">
                 {getVisiblePageNumbers().map((number, index) =>
@@ -494,34 +493,31 @@ export default function ProductsPage() {
                       ...
                     </span>
                   ) : (
-                    <button
+                    <Button
                       key={`page-${number}`}
                       onClick={() =>
                         typeof number === "number" && setCurrentPage(number)
                       }
-                      className={`px-3 py-1 rounded-md ${
-                        currentPage === number
-                          ? "bg-gray-200 text-black"
-                          : "hover:bg-gray-100"
-                      }`}
+                      variant={currentPage === number ? "outline" : "default"}
+                      size={"sm"}
                     >
                       {number}
-                    </button>
+                    </Button>
                   )
                 )}
               </div>
 
-              <button
+              <Button
+                size="sm"
                 onClick={() =>
                   setCurrentPage((prev) =>
                     Math.min(prev + 1, pagination.totalPages)
                   )
                 }
                 disabled={currentPage === pagination.totalPages}
-                className="p-1 rounded-md hover:bg-gray-100 disabled:opacity-50"
               >
                 <ChevronRight className="h-5 w-5" />
-              </button>
+              </Button>
             </div>
           </div>
         )}
@@ -531,10 +527,10 @@ export default function ProductsPage() {
       <Dialog open={isDialogOpen} onOpenChange={handleDialogOpenChange}>
         <DialogContent className="bg-white">
           <DialogHeader>
-            <DialogTitle>
+            <DialogTitle className="text-[#f04d46] text-xl text-center">
               {editingProduct ? "Update Product" : "Add New Product"}
             </DialogTitle>
-            <DialogDescription>
+            <DialogDescription className="text-center text-gray-500 dark:text-gray-100">
               {editingProduct
                 ? "Update the product details below"
                 : "Enter the product details below"}
@@ -574,7 +570,8 @@ export default function ProductsPage() {
 
             <DialogFooter>
               <Button
-                variant="outline"
+                variant="filled"
+                className="w-full"
                 type="submit"
                 disabled={isAddingProduct || isUpdatingProduct}
               >

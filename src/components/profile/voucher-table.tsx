@@ -30,6 +30,7 @@ import { db } from "@/lib/firebase/config";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "../ui/skeleton";
 import { VoucherTableSorting } from "./voucherTableSorting";
+import { Button } from "@/components/ui/button";
 // Define the Voucher interface
 interface Voucher {
   id: string;
@@ -192,7 +193,7 @@ export default function VoucherTable({
 
   // Calculate visible page numbers for pagination
   const getVisiblePageNumbers = (): (number | string)[] => {
-    const maxVisiblePages = 5;
+    const maxVisiblePages = 4;
     const pageNumbers: (number | string)[] = [];
 
     if (totalPages <= maxVisiblePages) {
@@ -278,7 +279,7 @@ export default function VoucherTable({
                   <SelectValue placeholder="5 per page" />
                 </div>
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="bg-white">
                 <SelectItem value="5">5 per page</SelectItem>
                 <SelectItem value="10">10 per page</SelectItem>
                 <SelectItem value="20">20 per page</SelectItem>
@@ -363,10 +364,10 @@ export default function VoucherTable({
                       </div>
                     ) : voucher.status === "EXPIRED" ? (
                       <div className="flex justify-center items-center">
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                        <div className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
                           <Clock className="mr-1 h-3 w-3" />
                           Expired
-                        </span>
+                        </div>
                       </div>
                     ) : (
                       <div className="flex justify-center items-center">
@@ -418,7 +419,7 @@ export default function VoucherTable({
       </div>
 
       {filteredAndSortedVouchers.length > 0 && (
-        <div className="mt-4 flex flex-col sm:flex-row justify-between items-center text-sm text-gray-500">
+        <div className="mt-4 flex flex-col sm:flex-row justify-between items-center text-sm text-muted-foreground">
           <div className="mb-4 sm:mb-0">
             Showing {indexOfFirstItem + 1}-
             {Math.min(indexOfLastItem, filteredAndSortedVouchers.length)} of{" "}
@@ -426,13 +427,13 @@ export default function VoucherTable({
           </div>
 
           <div className="flex items-center flex-wrap justify-center gap-1">
-            <button
+            <Button
+              size="sm"
               onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
               disabled={currentPage === 1}
-              className="p-1 rounded-md hover:bg-gray-100 disabled:opacity-50"
             >
-              <ChevronLeft className="h-5 w-5" />
-            </button>
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
 
             <div className="flex flex-wrap justify-center gap-1 max-w-[300px]">
               {getVisiblePageNumbers().map((number, index) =>
@@ -441,32 +442,28 @@ export default function VoucherTable({
                     ...
                   </span>
                 ) : (
-                  <button
+                  <Button
+                    size={"sm"}
                     key={`page-${number}`}
                     onClick={() =>
                       typeof number === "number" && setCurrentPage(number)
                     }
-                    className={`px-3 py-1 rounded-md ${
-                      currentPage === number
-                        ? "text-black bg-gray-100"
-                        : "hover:bg-gray-100"
-                    }`}
+                    variant={currentPage === number ? "outline" : "default"}
                   >
                     {number}
-                  </button>
+                  </Button>
                 )
               )}
             </div>
-
-            <button
+            <Button
+              size="sm"
               onClick={() =>
                 setCurrentPage((prev) => Math.min(prev + 1, totalPages))
               }
               disabled={currentPage === totalPages}
-              className="p-1 rounded-md hover:bg-gray-100 disabled:opacity-50"
             >
-              <ChevronRight className="h-5 w-5" />
-            </button>
+              <ChevronRight className="h-4 w-4" />
+            </Button>
           </div>
         </div>
       )}

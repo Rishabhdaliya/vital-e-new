@@ -36,8 +36,8 @@ const allNavigation = [
     name: "Retailer",
     roles: ["DEALER", "ADMIN"],
   },
-  { href: "/dealer", name: "Dealer", roles: ["DEALER", "ADMIN"] },
-  { href: "/admin", name: "Admin", roles: ["ADMIN"] },
+  { href: "/dealer", name: "Dealer", roles: ["ADMIN"] },
+  { href: "/admin", name: "Admin", roles: ["ADMIN", , "DEALER"] },
   {
     href: "/vouchers",
     name: "Vouchers",
@@ -46,7 +46,7 @@ const allNavigation = [
   {
     href: "/claim-voucher",
     name: "Redeem",
-    roles: ["RETAILER", "DEALER", "ADMIN"],
+    roles: ["RETAILER", "ADMIN"],
   },
   {
     href: "/products",

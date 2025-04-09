@@ -17,6 +17,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { DialogDescription } from "@radix-ui/react-dialog";
 
 function BulkUploadDialog() {
   const [open, setOpen] = React.useState(false);
@@ -28,7 +29,12 @@ function BulkUploadDialog() {
       </DialogTrigger>
       <DialogContent className="bg-white sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Bulk Upload Voucher</DialogTitle>
+          <DialogTitle className="text-[#f04d46] text-xl text-center">
+            Bulk Upload Voucher
+          </DialogTitle>
+          <DialogDescription className="text-center text-sm text-gray-500 dark:text-gray-100">
+            Choose a prefix and quantity to generate vouchers.
+          </DialogDescription>
         </DialogHeader>
         <VoucherGenerator />
       </DialogContent>
