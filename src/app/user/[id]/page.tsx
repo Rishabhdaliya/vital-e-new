@@ -45,13 +45,22 @@ interface Voucher {
   productName?: string;
 }
 
-// Fetch user data from API
-async function getUserData(id: string) {
+// Fetch user data from API - separated from voucher fetching
+async function fetchUserData(id: string): Promise<User | null> {
   try {
-    // Use absolute URL with origin for server-side fetching
-    const origin = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+    // Create a complete URL for server-side fetching
+    // This ensures the URL is properly parsed
+    const baseUrl =
+      process.env.NEXT_PUBLIC_API_URL ||
+      (typeof window !== "undefined"
+        ? window.location.origin
+        : "http://localhost:3000");
 
-    const response = await fetch(`${origin}/api/users/${id}`, {
+    const url = new URL(`/api/users/${id}`, baseUrl).toString();
+
+    console.log(`Fetching user data from: ${url}`);
+
+    const response = await fetch(url, {
       cache: "no-store", // Disable caching to always get fresh data
     });
 
@@ -67,31 +76,34 @@ async function getUserData(id: string) {
       return null;
     }
 
-    const userData = apiData.data;
-    console.log("API user data:", userData);
+    return apiData.data as User;
+  } catch (error) {
+    console.error("Error fetching user data:", error);
+    return null;
+  }
+}
 
-    // Get vouchers for this user
+// Fetch vouchers for a user - separated from user fetching
+async function fetchUserVouchers(
+  userId: string,
+  voucherIds: string[] = []
+): Promise<Voucher[]> {
+  try {
     let userVouchers: Voucher[] = [];
 
     // If user has voucher IDs, fetch those vouchers
-    if (
-      userData.vouchers &&
-      Array.isArray(userData.vouchers) &&
-      userData.vouchers.length > 0
-    ) {
+    if (voucherIds && voucherIds.length > 0) {
       // Fetch each voucher by ID
-      const voucherPromises = userData.vouchers.map(
-        async (voucherId: string) => {
-          const voucherDoc = await getDoc(doc(db, "vouchers", voucherId));
-          if (voucherDoc.exists()) {
-            return {
-              id: voucherDoc.id,
-              ...voucherDoc.data(),
-            } as Voucher;
-          }
-          return null;
+      const voucherPromises = voucherIds.map(async (voucherId: string) => {
+        const voucherDoc = await getDoc(doc(db, "vouchers", voucherId));
+        if (voucherDoc.exists()) {
+          return {
+            id: voucherDoc.id,
+            ...voucherDoc.data(),
+          } as Voucher;
         }
-      );
+        return null;
+      });
 
       userVouchers = (await Promise.all(voucherPromises)).filter(
         Boolean
@@ -99,7 +111,7 @@ async function getUserData(id: string) {
     } else {
       // If no voucher IDs, check for vouchers claimed by this user
       const vouchersRef = collection(db, "vouchers");
-      const voucherQuery = query(vouchersRef, where("claimedBy", "==", id));
+      const voucherQuery = query(vouchersRef, where("claimedBy", "==", userId));
       const voucherSnapshot = await getDocs(voucherQuery);
 
       voucherSnapshot.forEach((doc) => {
@@ -110,13 +122,10 @@ async function getUserData(id: string) {
       });
     }
 
-    return {
-      user: userData,
-      vouchers: userVouchers,
-    };
+    return userVouchers;
   } catch (error) {
-    console.error("Error fetching user data:", error);
-    return null;
+    console.error("Error fetching user vouchers:", error);
+    return [];
   }
 }
 
@@ -133,16 +142,23 @@ function calculateVoucherMetrics(vouchers: Voucher[] = []) {
   };
 }
 
-export default async function UserProfilePage({ params }: any) {
-  // Fetch user data from API
-  const { id } = await params;
-  const data = await getUserData(id);
+export default async function UserProfilePage({
+  params,
+}: {
+  params: { id: string };
+}) {
+  // Extract the user ID from params
+  const { id } = params;
 
-  if (!data || !data.user) {
+  // Fetch user data
+  const user = await fetchUserData(id);
+
+  if (!user) {
     notFound();
   }
 
-  const { user, vouchers } = data;
+  // Fetch vouchers separately
+  const vouchers = await fetchUserVouchers(id, user.vouchers);
 
   // Calculate metrics
   const metrics = calculateVoucherMetrics(vouchers);
@@ -150,7 +166,7 @@ export default async function UserProfilePage({ params }: any) {
   return (
     <div className="container max-w-[90vw] mt-18 mx-auto py-6 space-y-8">
       {/* User Profile Header */}
-      {user && <UserProfileHeader user={user} />}
+      <UserProfileHeader user={user} />
 
       {/* Registered By Info */}
       {user.registeredByUser && (
