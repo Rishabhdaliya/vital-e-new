@@ -37,7 +37,7 @@ export default function RegisteredByInfo({
               </span>
               <Badge
                 variant="outline"
-                className="bg-blue-100 text-[#f04d46] border-blue-200"
+                className="bg-red-100 text-[#f04d46] border-red-200"
               >
                 {registeredByUser.role}
               </Badge>
