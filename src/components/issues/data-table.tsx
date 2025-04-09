@@ -1,19 +1,15 @@
 "use client";
 
-import * as React from "react";
 import {
-  ColumnDef,
-  ColumnFiltersState,
-  SortingState,
-  VisibilityState,
+  type ColumnDef,
   flexRender,
   getCoreRowModel,
-  getFacetedRowModel,
-  getFacetedUniqueValues,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
   useReactTable,
+  getPaginationRowModel,
+  type SortingState,
+  getSortedRowModel,
+  type ColumnFiltersState,
+  getFilteredRowModel,
 } from "@tanstack/react-table";
 
 import {
@@ -24,71 +20,120 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-
-import { DataTablePagination } from "./data-table-pagination";
-import { DataTableToolbar } from "./data-table-toolbar";
-import { useSelector } from "react-redux";
-import { Skeleton } from "../ui/skeleton";
+import { Button } from "@/components/ui/button";
+import { useState } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
-  isLoading: boolean;
+  isLoading?: boolean;
+  pagination?: {
+    page: number;
+    pageSize: number;
+    totalCount: number;
+    totalPages: number;
+  };
+  onPageChange?: (page: number) => void;
 }
 
 export function DataTable<TData, TValue>({
   columns,
   data,
-  isLoading,
+  isLoading = false,
+  pagination,
+  onPageChange,
 }: DataTableProps<TData, TValue>) {
-  const [rowSelection, setRowSelection] = React.useState({});
-  const [columnVisibility, setColumnVisibility] =
-    React.useState<VisibilityState>({});
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-    []
-  );
-  const [sorting, setSorting] = React.useState<SortingState>([]);
+  const [sorting, setSorting] = useState<SortingState>([]);
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
 
   const table = useReactTable({
     data,
     columns,
+    getCoreRowModel: getCoreRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    onSortingChange: setSorting,
+    getSortedRowModel: getSortedRowModel(),
+    onColumnFiltersChange: setColumnFilters,
+    getFilteredRowModel: getFilteredRowModel(),
     state: {
       sorting,
-      columnVisibility,
-      rowSelection,
       columnFilters,
     },
-    enableRowSelection: true,
-    onRowSelectionChange: setRowSelection,
-    onSortingChange: setSorting,
-    onColumnFiltersChange: setColumnFilters,
-    onColumnVisibilityChange: setColumnVisibility,
-    getCoreRowModel: getCoreRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getFacetedRowModel: getFacetedRowModel(),
-    getFacetedUniqueValues: getFacetedUniqueValues(),
+    manualPagination: !!pagination, // Use manual pagination if pagination prop is provided
   });
 
+  // Calculate visible page numbers for pagination
+  const getVisiblePageNumbers = (): (number | string)[] => {
+    if (!pagination) return [];
+
+    const maxVisiblePages = 5;
+    const pageNumbers: (number | string)[] = [];
+    const totalPages = pagination.totalPages || 1;
+
+    if (totalPages <= maxVisiblePages) {
+      // Show all pages if there are fewer than maxVisiblePages
+      for (let i = 1; i <= totalPages; i++) {
+        pageNumbers.push(i);
+      }
+    } else {
+      // Always show first page
+      pageNumbers.push(1);
+
+      // Calculate start and end of visible pages
+      let startPage = Math.max(
+        2,
+        pagination.page - Math.floor(maxVisiblePages / 2)
+      );
+      const endPage = Math.min(totalPages - 1, startPage + maxVisiblePages - 3);
+
+      // Adjust if we're near the end
+      if (endPage - startPage < maxVisiblePages - 3) {
+        startPage = Math.max(2, totalPages - maxVisiblePages + 2);
+      }
+
+      // Add ellipsis after first page if needed
+      if (startPage > 2) {
+        pageNumbers.push("...");
+      }
+
+      // Add middle pages
+      for (let i = startPage; i <= endPage; i++) {
+        pageNumbers.push(i);
+      }
+
+      // Add ellipsis before last page if needed
+      if (endPage < totalPages - 1) {
+        pageNumbers.push("...");
+      }
+
+      // Always show last page
+      pageNumbers.push(totalPages);
+    }
+
+    return pageNumbers;
+  };
+
   return (
-    <div className="space-y-4">
-      <DataTableToolbar table={table} />
-      <>
+    <div>
+      <div>
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => (
-                  <TableHead key={header.id} colSpan={header.colSpan}>
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
-                  </TableHead>
-                ))}
+                {headerGroup.headers.map((header) => {
+                  return (
+                    <TableHead key={header.id}>
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
+                    </TableHead>
+                  );
+                })}
               </TableRow>
             ))}
           </TableHeader>
@@ -106,7 +151,7 @@ export function DataTable<TData, TValue>({
                     ))}
                 </TableRow>
               ))
-            ) : table.getRowModel().rows.length ? (
+            ) : table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
                 <TableRow
                   key={row.id}
@@ -134,8 +179,83 @@ export function DataTable<TData, TValue>({
             )}
           </TableBody>
         </Table>
-      </>
-      <DataTablePagination table={table} />
+      </div>
+
+      {/* Custom pagination controls when using server-side pagination */}
+      {pagination && onPageChange && (
+        <div className="flex items-center justify-between space-x-2 py-4">
+          <div className="text-sm text-muted-foreground">
+            Showing {(pagination.page - 1) * pagination.pageSize + 1}-
+            {Math.min(
+              pagination.page * pagination.pageSize,
+              pagination.totalCount
+            )}{" "}
+            of {pagination.totalCount} users
+          </div>
+
+          <div className="flex items-center space-x-2">
+            <Button
+              size="sm"
+              onClick={() => onPageChange(pagination.page - 1)}
+              disabled={pagination.page === 1}
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+
+            <div className="flex items-center">
+              {getVisiblePageNumbers().map((pageNumber, index) =>
+                pageNumber === "..." ? (
+                  <span key={`ellipsis-${index}`} className="px-2">
+                    ...
+                  </span>
+                ) : (
+                  <Button
+                    key={`page-${pageNumber}`}
+                    variant={
+                      pagination.page === pageNumber ? "outline" : "default"
+                    }
+                    size="sm"
+                    onClick={() =>
+                      typeof pageNumber === "number" && onPageChange(pageNumber)
+                    }
+                    className="mx-1"
+                  >
+                    {pageNumber}
+                  </Button>
+                )
+              )}
+            </div>
+
+            <Button
+              size="sm"
+              onClick={() => onPageChange(pagination.page + 1)}
+              disabled={pagination.page >= pagination.totalPages}
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* Default pagination controls when using client-side pagination */}
+      {!pagination && (
+        <div className="flex items-center justify-end space-x-2 py-4">
+          <Button
+            size="sm"
+            onClick={() => table.previousPage()}
+            disabled={!table.getCanPreviousPage()}
+          >
+            Previous
+          </Button>
+          <Button
+            size="sm"
+            onClick={() => table.nextPage()}
+            disabled={!table.getCanNextPage()}
+          >
+            Next
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

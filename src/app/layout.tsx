@@ -2,12 +2,12 @@ import type { Metadata } from "next";
 import "./globals.css";
 import SessionWrapper from "@/lib/SessionWrapper";
 import { Toaster } from "@/components/ui/toaster";
-import { RouteGuard } from "@/components/auth-guard/auth-guard";
 import Navbar from "@/components/layout/headers";
 import type React from "react";
 import { Inter, Poppins } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/layout/theme-provider";
+import Footer from "@/components/layout/footer";
 
 // Load fonts
 const inter = Inter({
@@ -44,6 +44,7 @@ export default function RootLayout({
             <Navbar />
             {/* <RouteGuard> */}
             <div className="md:px-8 px-3 ">{children}</div>
+            <Footer />
             {/* </RouteGuard> */}
           </ThemeProvider>
         </SessionWrapper>

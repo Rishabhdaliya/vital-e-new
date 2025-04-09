@@ -1,20 +1,80 @@
 import { api } from "../../api";
-import { updateUsers, setUsers, setUsersLoaded } from "./usersSlice";
+import {
+  updateUsers,
+  setUsers,
+  setUsersLoaded,
+  setPagination,
+} from "./usersSlice";
 
 export const usersApi = api.injectEndpoints({
   endpoints: (builder) => ({
     getUsers: builder.query({
-      query: () => ({
-        url: `/api/users`,
-        method: "GET",
-      }),
+      query: (params = {}) => {
+        const {
+          page = 1,
+          pageSize = 10,
+          search = "",
+          searchField = "all",
+        } = params;
+
+        // Get current user from Redux store or localStorage
+        let currentUserId, currentUserRole;
+
+        // Try to get from params first
+        if (params.requesterId && params.requesterRole) {
+          currentUserId = params.requesterId;
+          currentUserRole = params.requesterRole;
+        } else {
+          // Fallback to localStorage
+          try {
+            currentUserId = localStorage.getItem("userId");
+            currentUserRole = localStorage.getItem("userRole");
+          } catch (error) {
+            console.error("Error accessing localStorage:", error);
+          }
+        }
+
+        // Log the request parameters for debugging
+        console.log("User API request params:", {
+          page,
+          pageSize,
+          search,
+          searchField,
+          requesterId: currentUserId,
+          requesterRole: currentUserRole,
+        });
+
+        return {
+          url: `/api/users`,
+          method: "GET",
+          params: {
+            page,
+            pageSize,
+            search,
+            searchField,
+            requesterId: currentUserId,
+            requesterRole: currentUserRole,
+          },
+        };
+      },
       async onCacheEntryAdded(arg, { cacheDataLoaded, dispatch, getState }) {
         try {
           const state = getState().users;
-          if (!state.loaded) {
-            const { data } = await cacheDataLoaded;
-            dispatch(setUsers(data));
-            dispatch(setUsersLoaded(true)); // Mark as loaded
+          const response = await cacheDataLoaded;
+
+          console.log("API response:", response);
+
+          if (response.data && response.data.data) {
+            dispatch(setUsers({ data: response.data.data }));
+
+            // Set pagination data if available
+            if (response.data.pagination) {
+              dispatch(setPagination(response.data.pagination));
+            }
+
+            dispatch(setUsersLoaded(true));
+          } else {
+            console.error("Invalid API response format:", response);
           }
         } catch (error) {
           console.error("Failed to load users:", error);

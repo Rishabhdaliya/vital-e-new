@@ -86,8 +86,8 @@ export default function ClaimVoucher() {
   return (
     <div className="container max-w-md h-[100vh] flex justify-center items-center mx-auto py-10">
       {success ? (
-        <Card className="overflow-hidden">
-          <div className="bg-gradient-to-r from-blue-500 to-purple-600 p-6 text-white relative overflow-hidden">
+        <Card className="mt-15 pt-0 ">
+          <div className="bg-gradient-to-r  from-blue-500 to-purple-600 p-6 text-white relative overflow-hidden">
             {/* Animated confetti particles */}
             <div className="absolute inset-0">
               {[...Array(20)].map((_, i) => (
@@ -183,6 +183,7 @@ export default function ClaimVoucher() {
           <CardFooter>
             <Button
               variant="filled"
+              className="w-full"
               onClick={() => {
                 setSuccess(false);
                 setClaimedProduct(null);
@@ -196,8 +197,10 @@ export default function ClaimVoucher() {
       ) : (
         <Card>
           <CardHeader>
-            <CardTitle>Claim Your Voucher</CardTitle>
-            <CardDescription>
+            <CardTitle className="text-xl text-[#f04d46] text-center">
+              Claim Your Voucher
+            </CardTitle>
+            <CardDescription className="text-center text-gray-500 dark:text-gray-100">
               Enter your phone number and voucher batch number
             </CardDescription>
           </CardHeader>
@@ -237,7 +240,12 @@ export default function ClaimVoucher() {
                 )}
               </div>
 
-              <Button variant="filled" type="submit" disabled={isLoading}>
+              <Button
+                className="w-full"
+                variant="filled"
+                type="submit"
+                disabled={isLoading}
+              >
                 {isLoading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />

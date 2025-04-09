@@ -199,11 +199,7 @@ export default function SignInForm({ skipOtp = false }) {
         });
 
         // Redirect based on user role
-        if (userData.role === "CUSTOMER") {
-          router.push("/customer");
-        } else if (userData.role === "DEALER") {
-          router.push("/retailer");
-        } else if (userData.role === "ADMIN") {
+        if (userData.role === "ADMIN") {
           router.push("/admin");
         } else {
           router.push("/");
@@ -224,19 +220,17 @@ export default function SignInForm({ skipOtp = false }) {
   return (
     <div className="flex min-h-screen items-center justify-center  p-4">
       <Card className="w-full max-w-md shadow-lg">
-        <CardHeader className="space-y-2">
-          <CardTitle className="text-3xl font-bold text-center">
-            VITAL-E
-          </CardTitle>
-          <CardDescription className="text-lg font-semibold text-center">
+        <CardHeader>
+          <CardTitle className="text-xl text-[#f04d46] text-center">
             Sign In
-          </CardDescription>
-          <CardDescription className="text-center">
+          </CardTitle>
+          <CardDescription className="text-center text-gray-500 dark:text-gray-100">
             {step === "phone" &&
               "Enter your phone number to sign in to your account"}
-            {step === "otp" && "Enter the verification code sent to your phone"}
+            {step === "otp" && "Enter the verification code sent to your phone"}{" "}
           </CardDescription>
         </CardHeader>
+
         <CardContent>
           {step === "phone" && (
             <form onSubmit={formik.handleSubmit} className="space-y-4">

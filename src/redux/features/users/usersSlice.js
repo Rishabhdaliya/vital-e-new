@@ -2,10 +2,16 @@ import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
   data: [], // Set to an empty array initially
-  currentUser: null,
+  currentUser: null, // Add currentUser to store the signed-in user
   loaded: false,
   needsRefetch: false, // Add a needsRefetch flag
   loading: false, // Add a loading state to track the fetching process
+  pagination: {
+    page: 1,
+    pageSize: 10,
+    totalCount: 0,
+    totalPages: 0,
+  },
 };
 
 const usersSlice = createSlice({
@@ -13,7 +19,7 @@ const usersSlice = createSlice({
   initialState,
   reducers: {
     setUsers: (state, action) => {
-      state.data = action.payload; // Directly assuming payload is the data
+      state.data = action.payload.data; // Directly assuming payload is the data
       state.loaded = true;
       state.needsRefetch = false; // Reset the flag after successful data fetch
       state.loading = false; // Set loading to false after data fetch
@@ -31,6 +37,9 @@ const usersSlice = createSlice({
     },
     setLoading: (state, action) => {
       state.loading = action.payload; // Add a setLoading action to track loading state
+    },
+    setPagination: (state, action) => {
+      state.pagination = action.payload;
     },
     updateUsers: (state, action) => {
       const { usersId, updatedUsers } = action.payload;
@@ -54,6 +63,26 @@ const usersSlice = createSlice({
         console.error("Data is not an array.");
       }
     },
+    updateUser: (state, action) => {
+      const { userId, userData } = action.payload;
+
+      // Update currentUser if it matches
+      if (state.currentUser && state.currentUser.id === userId) {
+        state.currentUser = {
+          ...state.currentUser,
+          ...userData,
+        };
+      }
+
+      // Also update in the data array if present
+      const userIndex = state.data.findIndex((user) => user.id === userId);
+      if (userIndex !== -1) {
+        state.data[userIndex] = {
+          ...state.data[userIndex],
+          ...userData,
+        };
+      }
+    },
     logout: (state) => {
       state.currentUser = null; // Clear the current user on logout
     },
@@ -66,7 +95,9 @@ export const {
   setUsersLoaded,
   resetState,
   updateUsers,
+  updateUser,
   setLoading,
+  setPagination,
   logout,
 } = usersSlice.actions;
 
