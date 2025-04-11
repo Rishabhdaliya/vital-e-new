@@ -21,6 +21,7 @@ import { signOut } from "firebase/auth";
 import { auth } from "@/lib/firebase/config";
 import { setCurrentUser } from "@/redux/features/users/usersSlice";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 // Define all navigation links with their permission requirements
 const allNavigation = [
@@ -135,9 +136,16 @@ export default function Navbar() {
             <div className="flex shrink-0 items-center">
               <Link
                 href={"/"}
-                className="text-[#f04d46] font-semibold font-chewy text-4xl"
+                // className="text-[#f04d46] font-semibold font-chewy text-4xl"
               >
-                VITAL-E
+                <Image
+                  src="/assets/logo.png"
+                  alt="Vital-E Logo"
+                  layout="initials"
+                  width={135}
+                  height={100}
+                  className="h-10 mr-3"
+                />
               </Link>
             </div>
             <div className="hidden sm:ml-6 sm:block">
