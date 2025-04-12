@@ -182,9 +182,11 @@ export default async function UserProfilePage({ params }: any) {
       <Separator className="my-8" />
 
       {/* Voucher Metrics */}
-      <Suspense fallback={<MetricsSkeleton />}>
-        <VoucherMetrics data={metrics} />
-      </Suspense>
+      {user?.role === "RETAILER" && (
+        <Suspense fallback={<MetricsSkeleton />}>
+          <VoucherMetrics data={metrics} />
+        </Suspense>
+      )}
 
       {/* Voucher Table */}
       <Suspense fallback={<TableSkeleton />}>

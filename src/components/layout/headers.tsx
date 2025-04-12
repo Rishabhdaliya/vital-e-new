@@ -27,11 +27,12 @@ import Image from "next/image";
 const allNavigation = [
   // Public routes that everyone can access
   { href: "/", name: "Home", roles: ["PUBLIC"] },
-  {
-    href: "/customer",
-    name: "Customer",
-    roles: ["CUSTOMER", "PUBLIC", "ADMIN"],
-  },
+  //tODO: fUTURE SCOPE
+  // {
+  //   href: "/customer",
+  //   name: "Customer",
+  //   roles: ["CUSTOMER", "PUBLIC", "ADMIN"],
+  // },
   {
     href: "/retailer",
     name: "Retailer",

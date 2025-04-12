@@ -162,7 +162,7 @@ export default function ProfilePage() {
         {/* Account Information */}
         <Separator />
         {/* Voucher Metrics */}
-        <VoucherMetrics data={metrics} />
+        {currentUser?.role === "RETAILER" && <VoucherMetrics data={metrics} />}
       </div>
     </div>
   );

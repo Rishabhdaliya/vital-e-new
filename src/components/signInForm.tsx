@@ -114,7 +114,7 @@ export default function SignInForm({ skipOtp = false }) {
           // Redirect based on user role
 
           if (userData.role === "ADMIN") {
-            router.push("/admin");
+            router.push("/");
           } else {
             router.push("/");
           }
@@ -200,7 +200,7 @@ export default function SignInForm({ skipOtp = false }) {
 
         // Redirect based on user role
         if (userData.role === "ADMIN") {
-          router.push("/admin");
+          router.push("/");
         } else {
           router.push("/");
         }
