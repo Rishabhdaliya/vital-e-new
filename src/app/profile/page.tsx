@@ -31,6 +31,8 @@ import VoucherMetrics from "@/components/profile/voucher-metrics";
 import { Skeleton } from "@/components/ui/skeleton";
 import { calculateVoucherMetrics } from "@/lib/utils/utils";
 import { useUpdateUserDataMutation } from "@/redux/features/users/usersApi";
+import UserProfileHeader from "@/components/profile/user-profile-header";
+import ProfileForm from "@/components/profile/profile-form";
 
 // Define the form schema with Yup
 const validationSchema = Yup.object({
@@ -153,186 +155,14 @@ export default function ProfilePage() {
 
   return (
     <div className="container max-w-full mt-15 py-10 px-4 md:px-6">
-      <div className="space-y-8">
-        {/* Profile Header */}
-        <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
-          <Avatar className="h-24 w-24 border-4 border-background shadow-lg">
-            <AvatarImage
-              src={`https://api.dicebear.com/7.x/initials/svg?seed=${currentUser.name}`}
-              alt={currentUser.name}
-            />
-            <AvatarFallback className="text-2xl ">
-              {getInitials(currentUser.name)}
-            </AvatarFallback>
-          </Avatar>
-
-          <div className="space-y-2 text-center md:text-left">
-            <div className="space-y-1">
-              <h1 className="text-2xl [#f04d46] font-bold">
-                {currentUser.name}
-              </h1>
-              <div className="flex items-center justify-center md:justify-start gap-2 text-muted-foreground">
-                <Phone className="h-4 w-4" />
-                <span>{currentUser.phoneNo}</span>
-              </div>
-              <div className="flex items-center justify-center md:justify-start gap-2 text-muted-foreground">
-                <MapPin className="h-4 w-4" />
-                <span>{currentUser.city}</span>
-              </div>
-            </div>
-            <div className="space-y-1">
-              <p className="text-sm font-medium text-muted-foreground">
-                Member Since:&nbsp;
-                {new Date(
-                  currentUser.createdAt.seconds * 1000
-                ).toLocaleDateString()}
-              </p>
-            </div>
-            <div className="flex items-center justify-center md:justify-start gap-2">
-              {currentUser.isVerified ? (
-                <Badge
-                  variant="outline"
-                  className="bg-green-50 text-green-700 border-green-200 flex items-center gap-1"
-                >
-                  <CheckCircle className="h-3 w-3" />
-                  Verified Account
-                </Badge>
-              ) : (
-                <Badge
-                  variant="outline"
-                  className="bg-amber-50 text-amber-700 border-amber-200 flex items-center gap-1"
-                >
-                  <XCircle className="h-3 w-3" />
-                  Not Verified
-                </Badge>
-              )}
-              <Badge variant="outline">{currentUser.role}</Badge>
-            </div>
-          </div>
-
-          <div className="md:ml-auto">
-            <Button
-              variant={isEditing ? "outline" : "default"}
-              onClick={() => setIsEditing(!isEditing)}
-              disabled={isLoading}
-            >
-              {isEditing ? "Cancel Edit" : "Edit Profile"}
-            </Button>
-          </div>
-        </div>
-
-        <Separator />
-
+      <div className="space-y-4">
         {/* Profile Form */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Profile Information</CardTitle>
-            <CardDescription>
-              {isEditing
-                ? "Update your profile information below."
-                : "View your profile information below."}
-            </CardDescription>
-          </CardHeader>
-
-          <CardContent>
-            <form onSubmit={formik.handleSubmit} className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="space-y-2">
-                  <Label htmlFor="name">Full Name</Label>
-                  <Input
-                    id="name"
-                    name="name"
-                    placeholder="Your full name"
-                    value={formik.values.name}
-                    onChange={formik.handleChange}
-                    onBlur={formik.handleBlur}
-                    disabled={!isEditing || isLoading}
-                    className={!isEditing ? "bg-muted" : ""}
-                  />
-                  {formik.touched.name && formik.errors.name && (
-                    <p className="text-sm text-destructive">
-                      {formik.errors.name}
-                    </p>
-                  )}
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="phoneNo">Phone Number</Label>
-                  <Input
-                    id="phoneNo"
-                    name="phoneNo"
-                    disabled
-                    placeholder="Your phone number"
-                    value={formik.values.phoneNo}
-                    onChange={formik.handleChange}
-                    onBlur={formik.handleBlur}
-                    className={!isEditing ? "bg-muted" : ""}
-                  />
-                  {formik.touched.phoneNo && formik.errors.phoneNo && (
-                    <p className="text-sm text-destructive">
-                      {formik.errors.phoneNo}
-                    </p>
-                  )}
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="city">City</Label>
-                  <Input
-                    id="city"
-                    name="city"
-                    placeholder="Your city"
-                    value={formik.values.city}
-                    onChange={formik.handleChange}
-                    onBlur={formik.handleBlur}
-                    disabled={!isEditing || isLoading}
-                    className={!isEditing ? "bg-muted" : ""}
-                  />
-                  {formik.touched.city && formik.errors.city && (
-                    <p className="text-sm text-destructive">
-                      {formik.errors.city}
-                    </p>
-                  )}
-                </div>
-              </div>
-
-              {isEditing && (
-                <div className="flex justify-end gap-2">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={handleCancel}
-                    disabled={isLoading}
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    type="submit"
-                    disabled={isLoading || !formik.dirty || !formik.isValid}
-                  >
-                    {isLoading ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Saving...
-                      </>
-                    ) : (
-                      <>
-                        <Save className="mr-2 h-4 w-4" />
-                        Save Changes
-                      </>
-                    )}
-                  </Button>
-                </div>
-              )}
-            </form>
-          </CardContent>
-        </Card>
+        <ProfileForm user={currentUser} />
 
         {/* Account Information */}
         <Separator />
         {/* Voucher Metrics */}
-        <Suspense fallback={<MetricsSkeleton />}>
-          <VoucherMetrics data={metrics} />
-        </Suspense>
+        <VoucherMetrics data={metrics} />
       </div>
     </div>
   );

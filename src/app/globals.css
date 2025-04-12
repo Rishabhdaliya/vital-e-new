@@ -181,3 +181,8 @@
 .animate-check {
   animation: check 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
 }
+
+/* // tailwind css */
+.text-destructive {
+  color: oklch(63.7% 0.237 25.331);
+}
