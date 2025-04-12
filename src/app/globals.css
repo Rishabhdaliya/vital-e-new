@@ -22,9 +22,11 @@
     --input: 214.3 31.8% 91.4%;
     --ring: 222.2 84% 4.9%;
     --radius: 0.5rem;
+    --text: oklch(20.8% 0.042 265.755);
   }
 
   .dark {
+    --text: oklch(96.8% 0.007 247.896);
     --background: 222.2 84% 4.9%;
     --foreground: 210 40% 98%;
     --card: 222.2 84% 4.9%;
@@ -50,7 +52,7 @@
   }
 
   .dark body {
-    @apply bg-black text-white;
+    @apply bg-black text-slate-50;
   }
 
   h1,
@@ -185,4 +187,53 @@
 /* // tailwind css */
 .text-destructive {
   color: oklch(63.7% 0.237 25.331);
+}
+
+.dark .bg-white {
+  background-color: black;
+}
+.dark .bg-gray-100 {
+  background-color: black;
+}
+
+.dark .text-black {
+  color: var(--text);
+}
+
+.dark .text-gray-800 {
+  color: var(--text);
+}
+
+.dark .text-gray-800 {
+  color: var(--text);
+}
+
+.dark .text-gray-500 {
+  color: var(--text);
+}
+.dark .text-gray-600 {
+  color: var(--text);
+}
+.dark .text-gray-400 {
+  color: var(--text);
+}
+
+.dark .text-gray-900 {
+  color: oklch(96.8% 0.007 247.896);
+}
+
+.dark .border-gray-200 {
+  border-color: oklch(55.1% 0.027 264.364);
+}
+
+.dark .border-gray-300 {
+  border-color: oklch(55.1% 0.027 264.364);
+}
+
+.dark .border-gray-900 {
+  border-color: oklch(55.1% 0.027 264.364);
+}
+
+.dark .border-gray-400 {
+  border-color: oklch(55.1% 0.027 264.364);
 }

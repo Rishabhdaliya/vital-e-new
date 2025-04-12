@@ -66,7 +66,7 @@ export default function HeroSection() {
 
             <motion.h1
               variants={itemVariants}
-              className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-gray-900 dark:text-white"
+              className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-gray-900 "
             >
               Claim Your{" "}
               <span className="text-[#f04d46]">Digital Vouchers</span> With Ease
