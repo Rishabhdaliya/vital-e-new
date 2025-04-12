@@ -45,6 +45,11 @@ const allNavigation = [
     roles: ["ADMIN"],
   },
   {
+    href: "/my-vouchers",
+    name: "My Vouchers",
+    roles: ["RETAILER", "ADMIN"],
+  },
+  {
     href: "/claim-voucher",
     name: "Redeem",
     roles: ["RETAILER", "ADMIN"],
@@ -209,12 +214,12 @@ export default function Navbar() {
                 </div>
                 <MenuItems
                   transition
-                  className="absolute border border-[#f04d46] right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white dark:bg-gray-800 py-1 ring-1 shadow-lg ring-black/5 transition focus:outline-hidden data-closed:scale-95 data-closed:transform data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in"
+                  className="absolute border border-[#f04d46]  right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white dark:bg-gray-800 py-1 ring-1 shadow-lg ring-black/5 transition focus:outline-hidden data-closed:scale-95 data-closed:transform data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in"
                 >
                   <MenuItem>
                     <Link
                       href={"/profile"}
-                      className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 data-focus:bg-gray-100 dark:data-focus:bg-gray-700 data-focus:outline-hidden"
+                      className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 data-focus:bg-gray-100  dark:data-focus:bg-gray-700 data-focus:outline-hidden"
                     >
                       Your Profile
                     </Link>

@@ -15,6 +15,7 @@ import {
   doc,
   getDoc,
 } from "firebase/firestore";
+import ProfileForm from "@/components/profile/profile-form";
 
 // Define types inline to avoid import issues
 interface User {
@@ -171,7 +172,7 @@ export default async function UserProfilePage({ params }: any) {
   return (
     <div className="container max-w-[90vw] mt-18 mx-auto py-6 space-y-8">
       {/* User Profile Header */}
-      <UserProfileHeader user={user} />
+      <ProfileForm user={user} />
 
       {/* Registered By Info */}
       {user.registeredByUser && (
