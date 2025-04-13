@@ -7,6 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
 import { notFound } from "next/navigation";
 import { db } from "@/lib/firebase/config";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   collection,
   query,
@@ -170,28 +171,44 @@ export default async function UserProfilePage({ params }: any) {
   const metrics = calculateVoucherMetrics(vouchers);
 
   return (
-    <div className="container max-w-[90vw] mt-18 mx-auto py-6 space-y-8">
-      {/* User Profile Header */}
-      <ProfileForm user={user} />
+    <div className="container max-w-[90vw]  mt-18 mx-auto py-6 space-y-8">
+      <Tabs defaultValue="account" className="w-full">
+        <TabsList className="grid w-full grid-cols-2 mb-6 max-w-md mx-auto border border-[#f04d46] text-gray-900">
+          <TabsTrigger
+            value="account"
+            className=" data-[state=active]:text-[#f04d46]  data-[state=active]:font-bold"
+          >
+            Account Details
+          </TabsTrigger>
 
-      {/* Registered By Info */}
-      {user.registeredByUser && (
-        <RegisteredByInfo registeredByUser={user.registeredByUser} />
-      )}
-
-      <Separator className="my-8" />
-
-      {/* Voucher Metrics */}
-      {user?.role === "RETAILER" && (
-        <Suspense fallback={<MetricsSkeleton />}>
-          <VoucherMetrics data={metrics} />
-        </Suspense>
-      )}
-
-      {/* Voucher Table */}
-      <Suspense fallback={<TableSkeleton />}>
-        <VoucherTable vouchers={vouchers} />
-      </Suspense>
+          <TabsTrigger
+            value="voucher"
+            className=" data-[state=active]:text-[#f04d46]  data-[state=active]:font-bold"
+          >
+            Vouchers
+          </TabsTrigger>
+        </TabsList>
+        <TabsContent value="account">
+          {/* User Profile Header */}
+          <ProfileForm user={user} />
+          {/* Registered By Info */}
+          {user.registeredByUser && (
+            <RegisteredByInfo registeredByUser={user.registeredByUser} />
+          )}
+        </TabsContent>
+        <TabsContent value="voucher">
+          {/* Voucher Metrics */}
+          {user?.role === "RETAILER" && (
+            <Suspense fallback={<MetricsSkeleton />}>
+              <VoucherMetrics data={metrics} />
+            </Suspense>
+          )}
+          {/* Voucher Table */}
+          <Suspense fallback={<TableSkeleton />}>
+            <VoucherTable vouchers={vouchers} />
+          </Suspense>{" "}
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

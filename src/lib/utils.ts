@@ -1,7 +1,16 @@
 import { clsx, ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { differenceInDays } from "date-fns";
-import { User } from "@/components/types/schema";
+import { User, Voucher } from "@/components/types/schema";
+import {
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  query,
+  where,
+} from "firebase/firestore";
+import { db } from "./firebase/config";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -58,3 +67,49 @@ const getInitials = (name: string) => {
     .toUpperCase()
     .substring(0, 2);
 };
+
+// Fetch vouchers for a user - separated from user fetching
+export async function fetchUserVouchers(
+  userId: string,
+  voucherIds: string[] = []
+): Promise<Voucher[]> {
+  try {
+    let userVouchers: Voucher[] = [];
+
+    // If user has voucher IDs, fetch those vouchers
+    if (voucherIds && voucherIds.length > 0) {
+      // Fetch each voucher by ID
+      const voucherPromises = voucherIds.map(async (voucherId: string) => {
+        const voucherDoc = await getDoc(doc(db, "vouchers", voucherId));
+        if (voucherDoc.exists()) {
+          return {
+            id: voucherDoc.id,
+            ...voucherDoc.data(),
+          } as Voucher;
+        }
+        return null;
+      });
+
+      userVouchers = (await Promise.all(voucherPromises)).filter(
+        Boolean
+      ) as Voucher[];
+    } else {
+      // If no voucher IDs, check for vouchers claimed by this user
+      const vouchersRef = collection(db, "vouchers");
+      const voucherQuery = query(vouchersRef, where("claimedBy", "==", userId));
+      const voucherSnapshot = await getDocs(voucherQuery);
+
+      voucherSnapshot.forEach((doc) => {
+        userVouchers.push({
+          id: doc.id,
+          ...doc.data(),
+        } as Voucher);
+      });
+    }
+
+    return userVouchers;
+  } catch (error) {
+    console.error("Error fetching user vouchers:", error);
+    return [];
+  }
+}
