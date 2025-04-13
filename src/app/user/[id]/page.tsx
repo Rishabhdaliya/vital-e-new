@@ -176,14 +176,14 @@ export default async function UserProfilePage({ params }: any) {
         <TabsList className="grid w-full grid-cols-2 mb-6 max-w-md mx-auto border border-[#f04d46] text-gray-900">
           <TabsTrigger
             value="account"
-            className=" data-[state=active]:text-[#f04d46]  data-[state=active]:font-bold"
+            className=" data-[state=active]:text-[#f04d46] cursor-pointer  data-[state=active]:font-bold"
           >
             Account Details
           </TabsTrigger>
 
           <TabsTrigger
             value="voucher"
-            className=" data-[state=active]:text-[#f04d46]  data-[state=active]:font-bold"
+            className=" data-[state=active]:text-[#f04d46] cursor-pointer data-[state=active]:font-bold"
           >
             Vouchers
           </TabsTrigger>
@@ -205,7 +205,7 @@ export default async function UserProfilePage({ params }: any) {
           )}
           {/* Voucher Table */}
           <Suspense fallback={<TableSkeleton />}>
-            <VoucherTable vouchers={vouchers} />
+            <VoucherTable role={user.role} vouchers={vouchers} />
           </Suspense>{" "}
         </TabsContent>
       </Tabs>

@@ -46,6 +46,11 @@ const allNavigation = [
     roles: ["ADMIN"],
   },
   {
+    href: "/scan",
+    name: "Scan Voucher",
+    roles: ["ADMIN"],
+  },
+  {
     href: "/my-vouchers",
     name: "My Vouchers",
     roles: ["RETAILER", "ADMIN"],
