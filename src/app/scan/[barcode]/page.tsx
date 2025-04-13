@@ -284,7 +284,7 @@ export default function VoucherScanPage() {
   // Show error state
   if (error) {
     return (
-      <div className="container max-w-md  mx-auto py-10 px-4">
+      <div className="container max-w-md mt-20  mx-auto py-10 px-4">
         <Card className="border-amber-200">
           <CardHeader className="bg-amber-50">
             <div className="flex items-center justify-center mb-4">
