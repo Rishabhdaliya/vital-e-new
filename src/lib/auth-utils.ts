@@ -2,7 +2,7 @@
 export const rolePermissions = {
   ADMIN: ["*"], // Admin can access everything
   DEALER: ["/retailer", "/user", "/dealer", "/admin", "/vouchers", "/products"],
-  RETAILER: ["/retailer", "/vouchers", "/products"],
+  RETAILER: ["/retailer", "/vouchers", "/products", "/my-vouchers"],
   CUSTOMER: ["/customer", "/vouchers", "/claim-voucher"],
 };
 

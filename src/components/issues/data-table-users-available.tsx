@@ -24,11 +24,7 @@ export function DataTableUserAvailable({ users }: DataTableUsersOptionsProps) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button
-          variant="outline"
-          size="sm"
-          className="ml-auto hidden h-8 lg:flex"
-        >
+        <Button variant="outline" size="sm" className="ml-auto  h-8 lg:flex">
           <MixerHorizontalIcon className="mr-2 h-4 w-4" />
           Users Available
         </Button>

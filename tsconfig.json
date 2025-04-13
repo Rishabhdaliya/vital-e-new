@@ -31,7 +31,8 @@
     "src/lib/firebase/serverApp.js",
     "src/lib/config.js",
     "src/middlewarets",
-    "src/components/VoucherGenerator.jsx"
+    "src/components/VoucherGenerator.jsx",
+    "src/app/api/users/[id]/vouchers/route.js"
   ],
   "exclude": ["node_modules"]
 }

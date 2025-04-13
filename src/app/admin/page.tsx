@@ -109,8 +109,8 @@ export default function Admin() {
 
   return (
     <>
-      <div className="hidden h-full flex-1 flex-col mt-20 space-y-2 px-8 py-4 md:flex">
-        <div className="flex items-center justify-between space-y-2">
+      <div className=" h-full flex-1 flex-col mt-20 space-y-2 px-2 md:px-8 py-4  flex">
+        <div className="flex items-center flex-col md:flex-row  justify-between space-y-2">
           <div>
             <h2 className="text-xl font-bold tracking-tight">
               Welcome to Vital-E dashboard!
@@ -120,7 +120,7 @@ export default function Admin() {
               Customers:
             </p>
           </div>
-          <div className="flex items-center space-x-2">
+          <div className="flex  items-center space-x-2">
             <Button
               variant="outline"
               className={

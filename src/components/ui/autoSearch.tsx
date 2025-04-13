@@ -22,19 +22,27 @@ import {
 interface AutoSearchProps {
   cities: string[];
   onSelect: (city: string) => void;
+  disabled?: boolean;
+  defaultValue?: string;
 }
 
-export function AutoSearch({ cities, onSelect }: AutoSearchProps) {
+export function AutoSearch({
+  cities,
+  onSelect,
+  defaultValue = "",
+  disabled = false,
+}: AutoSearchProps) {
   const [open, setOpen] = React.useState(false);
-  const [value, setValue] = React.useState("");
+  const [value, setValue] = React.useState(defaultValue);
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button
+          disabled={disabled}
           role="combobox"
           aria-expanded={open}
-          className="w-full justify-between bg-white"
+          className="w-full justify-between -mt-1 bg-white"
         >
           {value || "Select City..."}
           <ChevronsUpDown className="opacity-50" />

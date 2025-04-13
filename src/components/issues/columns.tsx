@@ -21,6 +21,7 @@ import { User } from "../types/schema";
 import Link from "next/link";
 import { calculateVoucherMetrics } from "@/lib/utils/utils";
 import { ActionCell } from "./ActionCell";
+import { CheckCircle, XCircle } from "lucide-react";
 export const columns: ColumnDef<Users>[] = [
   // {
   //   id: "select",
@@ -143,6 +144,7 @@ export const columns: ColumnDef<Users>[] = [
             variant="outline"
             className="mt-1 border-green-200 text-green-500 bg-green-50"
           >
+            <CheckCircle className="h-3 w-3" />
             Verified
           </Badge>
         ) : (
@@ -150,6 +152,7 @@ export const columns: ColumnDef<Users>[] = [
             variant="outline"
             className="mt-1 border-red-200 text-red-500 bg-red-50"
           >
+            <XCircle className="h-3 w-3" />
             unVerified
           </Badge>
         )}

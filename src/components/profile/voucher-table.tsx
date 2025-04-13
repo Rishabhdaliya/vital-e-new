@@ -390,7 +390,7 @@ export default function VoucherTable({
                         </SelectTrigger>
                         <SelectContent className="bg-white">
                           <SelectItem value="EXPIRED">
-                            Set as Expired
+                            Set as Redeemed
                           </SelectItem>
                         </SelectContent>
                       </Select>
