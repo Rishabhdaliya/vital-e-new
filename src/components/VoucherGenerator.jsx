@@ -134,12 +134,12 @@ export default function VoucherGenerator() {
       <head>
         <title>RSV Printable Barcodes</title>
         <style>
-          body { font-family: Arial, sans-serif; margin: 0; padding: 20px; }
-          .barcode-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
-          .barcode-card { border: 1px solid #ddd; padding: 15px; page-break-inside: avoid; }
-          .barcode-title { font-size: 14px; margin-bottom: 5px; }
+          body { font-family: Arial, sans-serif; margin: 0; padding: 5px; }
+          .barcode-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 5px; }
+          .barcode-card { border: 1px solid #ddd; padding: 10px; page-break-inside: avoid; }
+          .barcode-title { font-size: 14px; margin-bottom: 5px; text-align: center; font-weight: bold; }
           .barcode-subtitle { font-size: 12px; color: #666; margin-bottom: 10px; }
-          .barcode-image { width: 100%; height: 80px; object-fit: contain; background: white; }
+          .barcode-image { width: 100%; height: 50px; object-fit: contain; background: white; }
           .barcode-number { font-size: 10px; text-align: center; margin-top: 5px; color: #666; }
           @media print {
             @page { margin: 0.5cm; }
@@ -396,7 +396,7 @@ export default function VoucherGenerator() {
                   <Button
                     variant="outline"
                     size="sm"
-                    className="bg-white hover:bg-green-50 text-green-600 border-green-200"
+                    className="bg-white hover:bg-green-50 hover:text-green-500  text-green-600 border-green-200"
                     onClick={downloadVouchersAsCSV}
                   >
                     <Download className="h-4 w-4 mr-1" />
@@ -405,7 +405,7 @@ export default function VoucherGenerator() {
                   <Button
                     variant="outline"
                     size="sm"
-                    className="bg-white hover:bg-green-50 text-green-600 border-green-200"
+                    className="bg-white hover:bg-green-50 hover:text-green-500 text-green-600 border-green-200"
                     onClick={openBarcodePrintPage}
                   >
                     <FileText className="h-4 w-4 mr-1" />

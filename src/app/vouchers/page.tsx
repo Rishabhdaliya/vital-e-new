@@ -18,6 +18,8 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { DialogDescription } from "@radix-ui/react-dialog";
+import { current } from "@reduxjs/toolkit";
+import { useSelector } from "react-redux";
 
 function BulkUploadDialog() {
   const [open, setOpen] = React.useState(false);
@@ -43,8 +45,16 @@ function BulkUploadDialog() {
 }
 
 export default function VouchersPage() {
-  const { data: vouchers, error, isLoading } = useGetVouchersQuery("");
+  const {
+    data: vouchers,
+    error,
+    isLoading,
+  } = useGetVouchersQuery("", {
+    refetchOnMountOrArgChange: true, // Automatically refetch when arguments change
+    refetchOnReconnect: true, // Refetch when the app reconnects
+  });
   const { toast } = useToast();
+  const currentUser = useSelector((state: any) => state.users.currentUser);
 
   if (error) {
     toast({ title: "Error", description: "Failed to load vouchers." });
@@ -62,7 +72,11 @@ export default function VouchersPage() {
         <BulkUploadDialog />
       </div>
 
-      <VoucherTable isLoading={isLoading} vouchers={vouchers?.data || []} />
+      <VoucherTable
+        isLoading={isLoading}
+        role={currentUser?.role}
+        vouchers={vouchers?.data || []}
+      />
     </div>
   );
 }

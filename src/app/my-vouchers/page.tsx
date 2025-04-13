@@ -71,7 +71,11 @@ export default function MyVouchers() {
           <>
             <VoucherMetrics data={metrics} />
             <Separator />
-            <VoucherTable vouchers={vouchers} isLoading={isLoading} />
+            <VoucherTable
+              vouchers={vouchers}
+              role={currentUser.role}
+              isLoading={isLoading}
+            />
           </>
         )}
       </div>

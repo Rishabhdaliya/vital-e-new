@@ -38,14 +38,21 @@ export default function Admin() {
     data,
     isLoading,
     refetch: refetchUsers,
-  } = useGetUsersQuery({
-    page,
-    pageSize,
-    search: debouncedSearchTerm,
-    searchField,
-    requesterId: currentUser?.id,
-    requesterRole: currentUser?.role,
-  });
+  } = useGetUsersQuery(
+    {
+      page,
+      pageSize,
+      search: debouncedSearchTerm,
+      searchField,
+      requesterId: currentUser?.id,
+      requesterRole: currentUser?.role,
+    },
+    {
+      refetchOnMountOrArgChange: true, // Automatically refetch when arguments change
+      refetchOnReconnect: true, // Refetch when the app reconnects
+      refetchOnFocus: true, // Refetch when the window regains focus
+    }
+  );
 
   const handleRefetchData = async (type: string) => {
     try {

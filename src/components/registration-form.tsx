@@ -86,12 +86,14 @@ export function RegistrationForm({
                   )}
                 </div>
                 <div className="grid gap-3">
-                  <Label htmlFor="phoneNo">WhatsApp Number</Label>
+                  <Label htmlFor="phoneNo">Phone Number</Label>
                   <Field
                     as={Input}
                     id="phoneNo"
                     name="phoneNo"
                     type="tel"
+                    maxLength={10}
+                    pattern="[0-9]{10}"
                     placeholder="1234567890"
                   />
                   {errors.phoneNo && touched.phoneNo && (

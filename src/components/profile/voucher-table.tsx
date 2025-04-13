@@ -48,6 +48,7 @@ interface Voucher {
 interface VoucherTableProps {
   vouchers: Voucher[];
   isLoading?: boolean;
+  role?: string;
 }
 
 // Define sort types
@@ -56,6 +57,7 @@ type SortDirection = "asc" | "desc";
 
 export default function VoucherTable({
   vouchers = [],
+  role,
   isLoading = false,
 }: VoucherTableProps) {
   const [searchTerm, setSearchTerm] = useState<string>("");
@@ -315,7 +317,9 @@ export default function VoucherTable({
               </TableHead>
               <TableHead>Barcode</TableHead>
               <TableHead>Status</TableHead>
-              <TableHead>Actions</TableHead>
+              {(role === "DEALER" || role === "ADMIN") && (
+                <TableHead>Actions</TableHead>
+              )}
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -378,30 +382,32 @@ export default function VoucherTable({
                       </div>
                     )}
                   </TableCell>
-                  <TableCell align="center">
-                    {voucher.status === "CLAIMED" ? (
-                      <Select
-                        onValueChange={(value) =>
-                          handleStatusChange(voucher.id, value)
-                        }
-                      >
-                        <SelectTrigger className="w-[180px] mx-auto bg-white">
-                          <SelectValue placeholder="Change Status" />
-                        </SelectTrigger>
-                        <SelectContent className="bg-white">
-                          <SelectItem value="EXPIRED">
-                            Set as Redeemed
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
-                    ) : (
-                      <span className="text-xs text-gray-500">
-                        {voucher.status === "EXPIRED"
-                          ? "No actions available"
-                          : "Must be claimed first"}
-                      </span>
-                    )}
-                  </TableCell>
+                  {(role === "DEALER" || role === "ADMIN") && (
+                    <TableCell align="center">
+                      {voucher.status === "CLAIMED" ? (
+                        <Select
+                          onValueChange={(value) =>
+                            handleStatusChange(voucher.id, value)
+                          }
+                        >
+                          <SelectTrigger className="w-[180px] mx-auto bg-white">
+                            <SelectValue placeholder="Change Status" />
+                          </SelectTrigger>
+                          <SelectContent className="bg-white">
+                            <SelectItem value="EXPIRED">
+                              Set as Redeemed
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                      ) : (
+                        <span className="text-xs text-gray-500">
+                          {voucher.status === "EXPIRED"
+                            ? "No actions available"
+                            : "Must be claimed first"}
+                        </span>
+                      )}
+                    </TableCell>
+                  )}
                 </TableRow>
               ))
             ) : (
