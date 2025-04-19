@@ -8,6 +8,8 @@ import { Inter, Poppins } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/layout/theme-provider";
 import Footer from "@/components/layout/footer";
+import Head from "next/head";
+import Link from "next/link";
 
 // Load fonts
 const inter = Inter({
@@ -35,6 +37,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <Head>
+        <Link rel="icon" href="/favicon.ico" />
+      </Head>
       <body className={`${inter.variable} ${poppins.variable}`}>
         <SessionWrapper>
           {" "}
